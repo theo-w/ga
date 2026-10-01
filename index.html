@@ -221,6 +221,9 @@
     background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
     padding: 16px 18px; margin-bottom: 14px;
   }
+  .back-row { margin-bottom: 10px; }
+  .back-link { font-size: 12px; color: var(--text-2); display: inline-flex; align-items: center; gap: 4px; padding: 4px 0; transition: color .15s; }
+  .back-link:hover { color: var(--accent); }
   .verdict-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
   .verdict-tag {
     font-size: 11px; padding: 4px 10px; border-radius: 999px; flex: 0 0 auto;
@@ -279,6 +282,9 @@
   .stat .v small { font-size: 11px; color: var(--text-2); font-weight: 400; }
   .stat .d { font-size: 11px; margin-top: 3px; }
   .d.up { color: var(--pos); } .d.down { color: var(--neg); } .d.flat { color: var(--text-2); }
+  .stat[data-go] { cursor: pointer; transition: border-color .15s; }
+  .stat[data-go]:hover { border-color: var(--accent); }
+  .stat[data-go]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; margin-bottom: 14px; }
   .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; min-width: 0; }
@@ -432,11 +438,9 @@
     </div>
   </div>
   <nav class="nav" id="nav">
-    <a href="#overview" class="active">口碑概览</a>
+    <a href="#overview" class="active">诊断报告</a>
     <a href="#segments">玩法拆解</a>
-    <a href="#evidence">口碑证据</a>
     <a href="#bench">竞品对比</a>
-    <a href="#pipeline">数据管道</a>
     <a href="#suggest">AI 设计建议</a>
     <a href="#generate">生成验证</a>
   </nav>
@@ -471,7 +475,7 @@
       <div class="verdict-head">
         <span class="verdict-tag">一句话诊断</span>
         <span class="verdict-line" id="verdictLine">—</span>
-        <button class="verdict-cta" id="verdictCta" type="button">看改进建议</button>
+        <button class="verdict-cta" id="verdictCta" type="button">对比竞品基准</button>
       </div>
       <div class="verdict-cards" id="verdictCards"></div>
     </div>
@@ -504,14 +508,15 @@
 
     <div class="stat-row">
       <div class="stat"><div class="k">采样后评论</div><div class="v" id="stKept">—</div><div class="d flat" id="stKeptD">进入分析</div></div>
-      <div class="stat"><div class="k">过滤噪音</div><div class="v" id="stNoise">—</div><div class="d flat">meme / 短评 / 水军</div></div>
-      <div class="stat"><div class="k">差评轰炸事件</div><div class="v" id="stBomb">—</div><div class="d flat" id="stBombD">事件性波动</div></div>
+      <div class="stat" data-go="pipeline" role="button" tabindex="0"><div class="k">过滤噪音</div><div class="v" id="stNoise">—</div><div class="d flat">meme / 短评 / 水军</div></div>
+      <div class="stat" data-go="pipeline" role="button" tabindex="0"><div class="k">差评轰炸事件</div><div class="v" id="stBomb">—</div><div class="d flat" id="stBombD">事件性波动</div></div>
       <div class="stat"><div class="k">设计知识沉淀</div><div class="v" id="stKb">—</div><div class="d flat">机制 ↔ 口碑条目</div></div>
     </div>
   </section>
 
   <!-- ===== 视图：玩法拆解 ===== -->
   <section class="view" id="view-segments">
+    <div class="back-row"><a href="#overview" class="back-link" data-back>← 返回诊断报告</a></div>
     <div class="grid-2">
       <div class="panel">
         <h4>7 段玩法拆解<span class="hint">AI 结构化拆解</span></h4>
@@ -526,6 +531,7 @@
 
   <!-- ===== 视图：口碑证据 ===== -->
   <section class="view" id="view-evidence">
+    <div class="back-row"><a href="#overview" class="back-link" data-back>← 返回诊断报告</a></div>
     <div class="panel">
       <h4>评论证据<span class="hint">正负面 + 噪音过滤演示</span></h4>
       <div class="toolbar">
@@ -544,6 +550,7 @@
 
   <!-- ===== 视图：竞品对比 ===== -->
   <section class="view" id="view-bench">
+    <div class="back-row"><a href="#overview" class="back-link" data-back>← 返回诊断报告</a></div>
     <div class="grid-2">
       <div class="panel">
         <h4>同品类口碑基准<span class="hint">竞品横评</span></h4>
@@ -561,6 +568,7 @@
 
   <!-- ===== 视图：数据管道（阶段一深化） ===== -->
   <section class="view" id="view-pipeline">
+    <div class="back-row"><a href="#overview" class="back-link" data-back>← 返回诊断报告</a></div>
     <div class="demo-note">阶段一 · 数据管道可视化：展示原始采集 → 智能采样 → 噪音过滤 → 打标聚合的全流程。数值为演示样例。</div>
     <div class="grid-2">
       <div class="panel">
@@ -590,6 +598,7 @@
 
   <!-- ===== 视图：AI 设计建议（阶段二） ===== -->
   <section class="view" id="view-suggest">
+    <div class="back-row"><a href="#overview" class="back-link" data-back>← 返回诊断报告</a></div>
     <div class="demo-note">阶段二 · AI 设计建议（框架预览）：由 ⑦ 设计知识库 + 竞品缺口分析产出，建议置信度为演示值。</div>
     <div class="panel" style="margin-bottom:14px;">
       <h4>生成逻辑<span class="hint">知识库 → 缺口 → 建议</span></h4>
@@ -609,6 +618,7 @@
 
   <!-- ===== 视图：生成验证（阶段三） ===== -->
   <section class="view" id="view-generate">
+    <div class="back-row"><a href="#overview" class="back-link" data-back>← 返回诊断报告</a></div>
     <div class="demo-note">阶段三 · 生成验证闭环（框架预览）：知识库输入 → AI 生成候选 → 试玩验证 → 玩家数据回流。候选与验证数据为演示值。</div>
     <div class="grid-2">
       <div class="panel">
@@ -888,8 +898,20 @@
   /* ===== 诊断报告 CTA ===== */
   var verdictCta = $("verdictCta");
   if (verdictCta) verdictCta.addEventListener("click", function(){
-    if (location.hash !== "#suggest") { try { history.replaceState(null, "", "#suggest"); } catch(err){} }
-    switchView("suggest");
+    if (location.hash !== "#bench") { try { history.replaceState(null, "", "#bench"); } catch(err){} }
+    switchView("bench");
+  });
+
+  /* ===== 首页统计卡 → 数据管道 ===== */
+  document.querySelectorAll(".stat[data-go]").forEach(function(s){
+    s.addEventListener("click", function(){
+      var go = s.getAttribute("data-go");
+      if (location.hash !== "#" + go) { try { history.replaceState(null, "", "#" + go); } catch(err){} }
+      switchView(go);
+    });
+    s.addEventListener("keydown", function(e){
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); s.click(); }
+    });
   });
 
   /* ===== 视图切换 ===== */
@@ -905,6 +927,7 @@
     var charts = ["chartSentiment","chartRadar","chartBench","chartFunnel","chartBomb","chartNoise"];
     charts.forEach(function(id){
       var el = document.getElementById(id);
+      if (!el) return;
       var inst = (typeof echarts !== "undefined" && echarts.getInstanceByDom) ? echarts.getInstanceByDom(el) : null;
       if (inst) setTimeout(function(){ inst.resize(); }, 60);
     });
@@ -917,6 +940,15 @@
         try { history.replaceState(null, "", "#" + key); } catch(err){}
       }
       switchView(key);
+    });
+  });
+  document.querySelectorAll("a[data-back]").forEach(function(a){
+    a.addEventListener("click", function(e){
+      e.preventDefault();
+      if (location.hash !== "#overview") {
+        try { history.replaceState(null, "", "#overview"); } catch(err){}
+      }
+      switchView("overview");
     });
   });
   window.addEventListener("hashchange", function(){
@@ -1355,6 +1387,7 @@
   var ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(function(){
     ["chartSentiment","chartRadar","chartBench","chartFunnel","chartBomb","chartNoise"].forEach(function(id){
       var el = document.getElementById(id);
+      if (!el) return;
       var inst = (typeof echarts !== "undefined" && echarts.getInstanceByDom) ? echarts.getInstanceByDom(el) : null;
       if (inst) inst.resize();
     });
