@@ -181,7 +181,7 @@
   .theme-btn:hover { color: var(--text); }
   .theme-btn.active { background: var(--accent); color: var(--mark-ink); font-weight: 500; }
 
-  /* 添加游戏引导弹层 */
+  /* 添加游戏向导弹层 */
   .add-mask {
     position: fixed; inset: 0; background: var(--mask); z-index: 50;
     display: flex; align-items: center; justify-content: center; padding: 16px;
@@ -191,19 +191,65 @@
     max-width: 460px; width: 100%; padding: 20px; box-sizing: border-box;
   }
   .add-dialog h5 { font-size: 15px; margin: 0 0 4px; color: var(--text); }
+  .add-dialog h5 b { color: var(--accent); }
   .add-dialog .add-sub { font-size: 12px; color: var(--text-2); margin-bottom: 14px; line-height: 1.6; }
-  .add-dialog .add-opt {
-    background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px;
-    padding: 11px 13px; margin-bottom: 8px;
+  .add-dialog .add-sub b { color: var(--text); }
+  .add-field { margin-bottom: 12px; }
+  .add-field label { display: block; font-size: 11.5px; color: var(--text-2); margin-bottom: 5px; }
+  .add-field input {
+    width: 100%; box-sizing: border-box; padding: 9px 12px; border-radius: 9px;
+    border: 1px solid var(--line); background: var(--panel-2); color: var(--text);
+    font-size: 13px; outline: none; transition: border-color .15s;
   }
-  .add-dialog .add-opt b { display: block; font-size: 12.5px; color: var(--text); margin-bottom: 3px; }
-  .add-dialog .add-opt span { font-size: 11.5px; color: var(--text-2); line-height: 1.55; }
-  .add-dialog .add-btns { display: flex; gap: 8px; margin-top: 14px; justify-content: flex-end; }
-  .add-dialog .add-close {
+  .add-field input:focus { border-color: var(--accent); }
+  .add-field input::placeholder { color: var(--text-3, var(--text-2)); }
+  .add-source { display: flex; gap: 8px; margin-bottom: 14px; }
+  .src-chip {
+    padding: 7px 13px; border-radius: 999px; font-size: 12px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--panel-2); color: var(--text-2);
+    transition: all .15s;
+  }
+  .src-chip.active { background: var(--accent); color: var(--mark-ink); border-color: var(--accent); font-weight: 600; }
+  .add-btns { display: flex; gap: 8px; margin-top: 14px; justify-content: flex-end; }
+  .add-close, .add-primary {
     padding: 8px 14px; border-radius: 8px; font-size: 12.5px; cursor: pointer;
     border: 1px solid var(--line); color: var(--text-2); background: var(--panel-2);
+    transition: all .15s;
   }
-  .add-dialog .add-close:hover { color: var(--text); border-color: var(--accent); }
+  .add-close:hover { color: var(--text); border-color: var(--accent); }
+  .add-primary { background: var(--accent); color: var(--mark-ink); border-color: var(--accent); font-weight: 600; }
+  .add-primary:hover { opacity: .88; }
+  .add-primary:disabled { opacity: .5; cursor: not-allowed; }
+  /* 进度 */
+  .prog-steps { display: flex; flex-direction: column; gap: 7px; margin: 4px 0 14px; }
+  .prog-step {
+    display: flex; align-items: center; gap: 9px; font-size: 12.5px; color: var(--text-2);
+    padding: 7px 10px; border-radius: 9px; background: var(--panel-2); border: 1px solid var(--line);
+  }
+  .prog-step .dot {
+    width: 16px; height: 16px; border-radius: 50%; flex: 0 0 auto;
+    border: 2px solid var(--line); background: var(--panel); position: relative;
+  }
+  .prog-step .dot::after {
+    content: ""; position: absolute; inset: 2px; border-radius: 50%; background: transparent;
+  }
+  .prog-step.run .dot { border-color: var(--accent); }
+  .prog-step.run .dot::after { background: var(--accent); animation: progPulse 1s ease-in-out infinite; }
+  .prog-step.done .dot { border-color: var(--pos); }
+  .prog-step.done .dot::after { background: var(--pos); }
+  .prog-step.done { color: var(--text); }
+  .prog-step .step-no { font-size: 11px; color: var(--text-2); width: 14px; flex: 0 0 auto; }
+  @keyframes progPulse { 0%,100% { opacity: 1; } 50% { opacity: .45; } }
+  .prog-bar { height: 6px; border-radius: 3px; background: var(--panel-2); border: 1px solid var(--line); overflow: hidden; }
+  .prog-fill { height: 100%; width: 0%; border-radius: 3px; background: var(--accent); transition: width .45s ease; }
+  /* 完成卡 */
+  .done-card {
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px;
+    padding: 4px 13px; margin-bottom: 6px;
+  }
+  .done-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; font-size: 12.5px; color: var(--text-2); border-bottom: 1px dashed var(--line); }
+  .done-row:last-child { border-bottom: none; }
+  .done-row b { color: var(--text); font-weight: 600; }
 
   /* ===== 主区 ===== */
   .wrap { max-width: 1180px; margin: 0 auto; padding: 20px 20px 48px; }
@@ -453,16 +499,60 @@
   </div>
 </header>
 
-  <!-- ===== 添加游戏引导弹层 ===== -->
+  <!-- ===== 添加游戏向导弹层 ===== -->
   <div class="add-mask" id="addMask" style="display:none;">
     <div class="add-dialog" role="dialog" aria-modal="true" aria-label="添加游戏">
-      <h5>添加游戏分析</h5>
-      <div class="add-sub">正式版支持两类来源，当前 MVP 先展示入口与形态。</div>
-      <div class="add-opt"><b>自定义抓取（阶段一）</b><span>提交 Steam / TapTap 游戏链接，采集管道自动抓取评论入库，生成正式分析报告。接入后此处为输入框。</span></div>
-      <div class="add-opt"><b>AI 推荐（阶段二）</b><span>基于设计知识库与竞品缺口，推荐值得分析/借鉴的经典游戏。依赖知识库厚度，暂未开放。</span></div>
-      <div class="add-btns">
-        <button class="add-close" type="button" data-close>知道了</button>
+
+      <!-- 步骤1：输入 -->
+      <div class="add-step" id="addStepInput">
+        <h5>添加游戏分析</h5>
+        <div class="add-sub">输入游戏名称与商店链接，模拟阶段一采集管道：抓取评论 → 智能采样 → 噪音过滤 → 打标 → 聚合出报告。</div>
+        <div class="add-field">
+          <label for="addName">游戏名称</label>
+          <input id="addName" type="text" placeholder="例如：戴森球计划" autocomplete="off" />
+        </div>
+        <div class="add-field">
+          <label for="addUrl">商店链接（Steam / TapTap）</label>
+          <input id="addUrl" type="text" placeholder="https://store.steampowered.com/app/…" autocomplete="off" />
+        </div>
+        <div class="add-source" role="group" aria-label="数据来源">
+          <button type="button" class="src-chip active" data-src="steam">Steam 评论</button>
+          <button type="button" class="src-chip" data-src="taptap">TapTap 评论</button>
+        </div>
+        <div class="add-btns">
+          <button class="add-close" type="button" data-close>取消</button>
+          <button class="add-primary" id="addStart" type="button">开始抓取</button>
+        </div>
       </div>
+
+      <!-- 步骤2：进度 -->
+      <div class="add-step" id="addStepProgress" style="display:none;">
+        <h5>正在分析 <b id="progName"></b></h5>
+        <div class="add-sub" id="progSub">采集原始评论…</div>
+        <div class="prog-steps" id="progSteps"></div>
+        <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+        <div class="add-btns">
+          <button class="add-close" type="button" data-close>取消</button>
+        </div>
+      </div>
+
+      <!-- 步骤3：完成 -->
+      <div class="add-step" id="addStepDone" style="display:none;">
+        <h5>分析完成</h5>
+        <div class="add-sub">已生成 <b id="doneName"></b> 的竞品口碑诊断报告。</div>
+        <div class="done-card">
+          <div class="done-row"><span>综合口碑</span><b id="doneScore"></b></div>
+          <div class="done-row"><span>样本 / 保留</span><b id="doneSample"></b></div>
+          <div class="done-row"><span>过滤噪音</span><b id="doneNoise"></b></div>
+          <div class="done-row"><span>最强段</span><b id="doneStrong"></b></div>
+          <div class="done-row"><span>最弱段</span><b id="doneWeak"></b></div>
+        </div>
+        <div class="add-btns">
+          <button class="add-close" type="button" data-close>关闭</button>
+          <button class="add-primary" id="addViewReport" type="button">查看诊断报告</button>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -854,27 +944,175 @@
 
   /* ===== 顶栏游戏切换 ===== */
   var switchEl = $("gameSwitch");
-  GAMES.forEach(function(g){
-    var b = document.createElement("button");
-    b.className = "game-btn" + (g.id === current.id ? " active" : "");
-    b.textContent = g.name;
-    b.dataset.id = g.id;
-    b.addEventListener("click", function(){
-      current = GAMES.filter(function(x){ return x.id === b.dataset.id; })[0];
-      document.querySelectorAll(".game-btn").forEach(function(x){ x.classList.remove("active"); });
-      b.classList.add("active");
-      renderAll();
+  function renderGameButtons(){
+    switchEl.innerHTML = "";
+    GAMES.forEach(function(g){
+      var b = document.createElement("button");
+      b.className = "game-btn" + (g.id === current.id ? " active" : "");
+      b.textContent = g.name;
+      b.dataset.id = g.id;
+      b.addEventListener("click", function(){
+        current = GAMES.filter(function(x){ return x.id === b.dataset.id; })[0];
+        document.querySelectorAll(".game-btn").forEach(function(x){ x.classList.remove("active"); });
+        b.classList.add("active");
+        renderAll();
+      });
+      switchEl.appendChild(b);
     });
-    switchEl.appendChild(b);
-  });
+  }
+  renderGameButtons();
 
-  /* ===== 添加游戏入口 ===== */
+  /* ===== 添加游戏：模拟抓取向导 ===== */
   var addMask = $("addMask"), addBtn = $("addGameBtn");
+  var addSteps = ["addStepInput", "addStepProgress", "addStepDone"];
+  var selectedSrc = "steam", addTimer = null, newGame = null;
+  var PIPELINE = [
+    { t: "采集原始评论", d: function(src){ return src === "taptap" ? "正在抓取 TapTap 评论，去重入库…" : "正在抓取 Steam 评论，去重入库…"; } },
+    { t: "智能采样", d: function(){ return "按平台 / 时长分层，抽取 2000 条代表样本…"; } },
+    { t: "噪音过滤", d: function(){ return "识别疑似水军、meme 短评与无关归档…"; } },
+    { t: "情绪打标", d: function(){ return "正 / 中 / 负三分类，逐维计算得分…"; } },
+    { t: "聚合出报告", d: function(){ return "生成一句话诊断与强弱段 / 机会点…"; } }
+  ];
   function toggleAdd(show){
     if (!addMask) return;
+    if (addTimer) { clearTimeout(addTimer); addTimer = null; }
+    if (show) showAddStep(0);
     addMask.style.display = show ? "flex" : "none";
   }
+  function showAddStep(i){
+    addSteps.forEach(function(id, k){ var el = $(id); if (el) el.style.display = k === i ? "block" : "none"; });
+  }
+  function makeNewGame(name, url, src){
+    var base = GAMES[0];
+    var rnd = function(a,b){ return a + Math.floor(Math.random() * (b - a + 1)); };
+    var score = rnd(78, 90), pos = rnd(68, 82), neg = rnd(5, 12);
+    var neu = 100 - pos - neg;
+    var sample = rnd(9000, 26000), noise = rnd(260, 520);
+    var id = "g" + Date.now();
+    var segs = base.segs.map(function(s){ return [s[0], s[1], Math.max(55, Math.min(97, s[2] + rnd(-6, 5))), s[3]]; });
+    var reviews = [];
+    for (var i = 0; i < 5; i++){
+      reviews.push({
+        id: id + "r" + i,
+        sentiment: i < 3 ? "pos" : (i === 3 ? "neu" : "neg"),
+        content: i < 3 ? "玩法循环停不下来，越玩越上头，时间一下就没了" : (i === 3 ? "中期内容略显重复，长线动力一般" : "联机体验一般，好友系统不够顺畅"),
+        platform: src === "taptap" ? "TapTap" : "Steam",
+        playtime_h: rnd(20, 120), votes: rnd(800, 4500),
+        posted_at: "2026-09-" + (10 + i), sampling_score: rnd(80, 98),
+        noise_type: null, is_review_bomb: false
+      });
+    }
+    return {
+      id: id, name: name, en: name, genre: "模拟经营 · 沙盒",
+      score: score, sample: sample, kept: 2000, noise: noise, bomb: 0,
+      pos: pos, neg: neg, neu: neu, trend: "up",
+      tags: ["模拟经营", "沙盒", "探索"],
+      verdictLine: "核心循环扎实，长线内容与弱协作是下一增长点",
+      verdict: {
+        strong: { name: "核心玩法与循环", score: Math.max(80, score - 2), note: "目标清晰、反馈密集，被玩家称为“停不下来”" },
+        weak: { name: "社交与竞技", score: rnd(56, 66), note: "单机为主，追求对抗的玩家会流失" },
+        opp: { name: "弱协作缺口", note: "加入异步协作与季节限时活动，与玩法氛围一致", conf: rnd(78, 88) }
+      },
+      cats: base.cats.map(function(c){ return [c[0], Math.max(50, Math.min(98, c[1] + rnd(-6, 4)))]; }),
+      segs: segs,
+      reviews: reviews,
+      daily: base.daily.map(function(d){ return [d[0], Math.max(20, d[1] + rnd(-4, 8))]; }),
+      bombIdx: [], bombEvents: [],
+      noiseBreakdown: [["meme / 短评", Math.round(noise * .45)], ["疑似水军", Math.round(noise * .35)], ["无关归档", Math.round(noise * .2)]],
+      suggests: base.suggests.map(function(s, i){
+        return { target: s.target, direction: s.direction, mechanism: s.mechanism, borrow: s.borrow, confidence: Math.max(60, s.confidence + rnd(-5, 5)), evidence: id + "r" + i };
+      }),
+      generation: base.generation.map(function(gd, i){
+        var short = name.length > 4 ? name.slice(0, 4) : name;
+        return {
+          title: "《" + short + "·" + (i === 0 ? "工坊篇" : "纪元篇") + "》",
+          genre: gd.genre, core: gd.core, audience: gd.audience,
+          diff: gd.diff.slice(), mech_tags: gd.mech_tags.slice(),
+          playability: Math.max(55, gd.playability + rnd(-6, 6)), status: "生成候选 · 待试玩验证"
+        };
+      }),
+      bench: { names: [name, "星露谷物语", "波西亚时光"], scores: [score, 92, 78], posRates: [pos, 82, 71] },
+      benchRows: [
+        [name, String(score), pos + "%", "核心玩法与循环", "社交与竞技"],
+        ["星露谷物语", "92", "82%", "成长与养成", "后期新鲜感"],
+        ["波西亚时光", "78", "71%", "探索与内容量", "性能优化"]
+      ],
+      kb: rnd(70, 90)
+    };
+  }
+  function startAddFlow(){
+    var name = $("addName").value.trim();
+    var url = $("addUrl").value.trim();
+    if (!name){
+      $("addName").focus();
+      $("addName").style.borderColor = "var(--warn)";
+      return;
+    }
+    $("addName").style.borderColor = "";
+    var src = selectedSrc;
+    $("progName").textContent = name;
+    var stepsEl = $("progSteps");
+    stepsEl.innerHTML = "";
+    var progFill = $("progFill");
+    progFill.style.width = "0%";
+    showAddStep(1);
+    var stepEls = [];
+    PIPELINE.forEach(function(st, i){
+      var row = document.createElement("div");
+      row.className = "prog-step";
+      row.innerHTML = '<span class="step-no">' + (i + 1) + "</span>" +
+        '<span class="dot"></span><span class="step-txt"></span>';
+      row.querySelector(".step-txt").textContent = st.t + "　" + st.d(src);
+      stepsEl.appendChild(row);
+      stepEls.push(row);
+    });
+    var idx = 0, tick = function(){
+      stepEls.forEach(function(r, k){
+        r.classList.remove("run", "done");
+        if (k < idx) r.classList.add("done");
+        else if (k === idx) r.classList.add("run");
+      });
+      progFill.style.width = Math.round((idx + 1) / PIPELINE.length * 100) + "%";
+      if (idx < PIPELINE.length - 1){
+        idx++;
+        addTimer = setTimeout(tick, 780);
+      } else {
+        addTimer = setTimeout(function(){
+          newGame = makeNewGame(name, url, src);
+          $("doneName").textContent = name;
+          $("doneScore").textContent = newGame.score + " / 100";
+          $("doneSample").textContent = newGame.sample.toLocaleString("zh-CN") + " / " + newGame.kept;
+          $("doneNoise").textContent = "-" + newGame.noise + " 条";
+          $("doneStrong").textContent = newGame.verdict.strong.name + "（" + newGame.verdict.strong.score + "）";
+          $("doneWeak").textContent = newGame.verdict.weak.name + "（" + newGame.verdict.weak.score + "）";
+          showAddStep(2);
+        }, 780);
+      }
+    };
+    tick();
+  }
+  function finishAddFlow(){
+    if (!newGame) return;
+    GAMES.push(newGame);
+    current = newGame;
+    renderGameButtons();
+    toggleAdd(false);
+    if (location.hash !== "#overview"){ try { history.replaceState(null, "", "#overview"); } catch(err){} }
+    switchView("overview");
+    renderAll();
+  }
   if (addBtn) addBtn.addEventListener("click", function(){ toggleAdd(true); });
+  var addStart = $("addStart");
+  if (addStart) addStart.addEventListener("click", startAddFlow);
+  var addView = $("addViewReport");
+  if (addView) addView.addEventListener("click", finishAddFlow);
+  document.querySelectorAll(".src-chip").forEach(function(c){
+    c.addEventListener("click", function(){
+      document.querySelectorAll(".src-chip").forEach(function(x){ x.classList.remove("active"); });
+      c.classList.add("active");
+      selectedSrc = c.dataset.src;
+    });
+  });
   if (addMask) addMask.addEventListener("click", function(e){
     if (e.target === addMask || (e.target.getAttribute && e.target.getAttribute("data-close") !== null)) toggleAdd(false);
   });
