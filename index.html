@@ -215,6 +215,42 @@
 
   /* 概览行 */
   .overview { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }
+
+  /* 诊断报告 */
+  .verdict {
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 16px 18px; margin-bottom: 14px;
+  }
+  .verdict-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+  .verdict-tag {
+    font-size: 11px; padding: 4px 10px; border-radius: 999px; flex: 0 0 auto;
+    background: var(--accent-soft-4); color: var(--accent); font-weight: 600; letter-spacing: .04em;
+  }
+  .verdict-line { font-size: 16px; font-weight: 700; color: var(--text); flex: 1 1 240px; line-height: 1.45; }
+  html[data-theme="editorial"] .verdict-line { font-family: var(--font-display); }
+  .verdict-cta {
+    padding: 8px 14px; border-radius: 9px; font-size: 12.5px; flex: 0 0 auto;
+    background: var(--accent); color: var(--mark-ink); font-weight: 600;
+    transition: opacity .15s;
+  }
+  .verdict-cta:hover { opacity: .88; }
+  .verdict-cards { display: flex; gap: 10px; flex-wrap: wrap; }
+  .vcard {
+    flex: 1 1 210px; min-width: 0; border-radius: 11px; padding: 12px 14px;
+    border: 1px solid var(--line); background: var(--panel-2); cursor: pointer;
+    transition: border-color .15s, transform .15s;
+  }
+  .vcard:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .vcard .v-tag { font-size: 10.5px; font-weight: 600; letter-spacing: .05em; margin-bottom: 5px; display: flex; align-items: center; gap: 6px; }
+  .vcard.strong .v-tag { color: var(--pos); }
+  .vcard.weak .v-tag { color: var(--neg); }
+  .vcard.opp .v-tag { color: var(--accent); }
+  .vcard .v-name { font-size: 13px; font-weight: 700; color: var(--text); }
+  .vcard .v-score { font-size: 18px; font-weight: 800; color: var(--text); margin-left: auto; }
+  .vcard.strong .v-score { color: var(--pos); }
+  .vcard.weak .v-score { color: var(--neg); }
+  .vcard .v-note { font-size: 11.5px; color: var(--text-2); line-height: 1.55; margin-top: 4px; }
+  .vcard .v-link { font-size: 11px; color: var(--accent); margin-top: 8px; font-weight: 500; }
   .score-card {
     background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
     padding: 16px; flex: 1 1 240px; min-width: 0;
@@ -379,6 +415,9 @@
     .sbar { grid-template-columns: 90px 1fr 36px; }
     .seg { grid-template-columns: 1fr; gap: 4px; }
     .sugg .s-conf { margin-left: 0; }
+    .verdict-head { gap: 8px; }
+    .verdict-line { font-size: 14.5px; flex-basis: 100%; order: 3; }
+    .verdict-cta { width: 100%; }
   }
 </style>
 </head>
@@ -426,8 +465,17 @@
 <main class="wrap">
   <div class="demo-note">MVP 交互原型 · 展示产品形态与交互流程，下方数据均为演示样例（非真实统计）。</div>
 
-  <!-- ===== 视图：口碑概览 ===== -->
+  <!-- ===== 视图：口碑概览（诊断报告） ===== -->
   <section class="view active" id="view-overview">
+    <div class="verdict" id="verdictBox">
+      <div class="verdict-head">
+        <span class="verdict-tag">一句话诊断</span>
+        <span class="verdict-line" id="verdictLine">—</span>
+        <button class="verdict-cta" id="verdictCta" type="button">看改进建议</button>
+      </div>
+      <div class="verdict-cards" id="verdictCards"></div>
+    </div>
+
     <div class="overview">
       <div class="score-card">
         <div class="gauge-wrap"><canvas id="gaugeCanvas"></canvas>
@@ -591,6 +639,12 @@
       score: 92, sample: 12860, kept: 2000, noise: 340, bomb: 0,
       pos: 82, neg: 5, neu: 13, trend: "up",
       tags: ["模拟经营", "农场", "单人可玩"],
+      verdictLine: "经营养成标杆，社交协作是下一增长点",
+      verdict: {
+        strong: { name: "成长与养成", score: 94, note: "目标清晰、长短线分层，被玩家称为“停不下来”" },
+        weak: { name: "社交与竞技", score: 70, note: "单机为主，追求对抗的玩家会流失" },
+        opp: { name: "弱协作缺口", note: "加入季节限时协作活动，与小镇氛围一致", conf: 82 }
+      },
       cats: [
         ["战斗与操作", 66], ["成长与养成", 94], ["探索与世界观", 78],
         ["社交与多人", 72], ["剧情与叙事", 76], ["美术与音效", 88],
@@ -640,6 +694,12 @@
       score: 95, sample: 24300, kept: 2000, noise: 515, bomb: 1,
       pos: 88, neg: 3, neu: 9, trend: "up",
       tags: ["动作", "探索", "高难度"],
+      verdictLine: "战斗设计行业标杆，新手引导是最大流失点",
+      verdict: {
+        strong: { name: "战斗与操作", score: 96, note: "boss 战节奏与机制设计被玩家评为天花板" },
+        weak: { name: "新手引导", score: 62, note: "无指引迷路成本高，轻度玩家两小时内弃坑" },
+        opp: { name: "难度分层缺口", note: "内置引导护符 + 难度滑杆，保留硬核同时扩容受众", conf: 88 }
+      },
       cats: [
         ["战斗与操作", 96], ["成长与养成", 80], ["探索与世界观", 97],
         ["社交与多人", 55], ["剧情与叙事", 90], ["美术与音效", 98],
@@ -689,6 +749,12 @@
       score: 78, sample: 38900, kept: 2000, noise: 980, bomb: 2,
       pos: 61, neg: 22, neu: 17, trend: "down",
       tags: ["生存", "收集", "话题争议"],
+      verdictLine: "收集养成爆款基因，性能与叙事拖累口碑",
+      verdict: {
+        strong: { name: "社交与多人", score: 88, note: "帕鲁协作 + 联机是最大卖点，多人生存活跃" },
+        weak: { name: "性能与优化", score: 48, note: "中低配掉帧崩溃集中，是差评轰炸导火索" },
+        opp: { name: "口碑修复优先级", note: "先堵优化短板，再谈叙事补强（参考 pw004 证据）", conf: 90 }
+      },
       cats: [
         ["战斗与操作", 70], ["成长与养成", 84], ["探索与世界观", 74],
         ["社交与多人", 88], ["剧情与叙事", 45], ["美术与音效", 58],
@@ -817,6 +883,13 @@
   }
   themeBtns.forEach(function(b){
     b.addEventListener("click", function(){ setTheme(b.dataset.theme); });
+  });
+
+  /* ===== 诊断报告 CTA ===== */
+  var verdictCta = $("verdictCta");
+  if (verdictCta) verdictCta.addEventListener("click", function(){
+    if (location.hash !== "#suggest") { try { history.replaceState(null, "", "#suggest"); } catch(err){} }
+    switchView("suggest");
   });
 
   /* ===== 视图切换 ===== */
@@ -1038,6 +1111,42 @@
     });
   }
 
+  /* ===== 诊断报告（结论先行） ===== */
+  function renderVerdict(){
+    var line = $("verdictLine");
+    if (line) line.textContent = current.verdictLine;
+    var box = $("verdictCards");
+    if (!box) return;
+    box.innerHTML = "";
+    var cards = [
+      { cls:"strong", tag:"最强段", name: current.verdict.strong.name, score: current.verdict.strong.score, note: current.verdict.strong.note, go:"segments", link:"查看玩法拆解" },
+      { cls:"weak", tag:"最弱段", name: current.verdict.weak.name, score: current.verdict.weak.score, note: current.verdict.weak.note, go:"evidence", link:"查看口碑证据" },
+      { cls:"opp", tag:"机会点", name: current.verdict.opp.name, note: current.verdict.opp.note + "（置信度 " + current.verdict.opp.conf + "%）", go:"suggest", link:"查看 AI 建议" }
+    ];
+    cards.forEach(function(c){
+      var d = document.createElement("div");
+      d.className = "vcard " + c.cls;
+      d.tabIndex = 0;
+      d.setAttribute("role", "button");
+      var scoreHtml = c.score !== undefined ? '<span class="v-score">' + c.score + '</span>' : "";
+      d.innerHTML = '<div class="v-tag">' + c.tag + scoreHtml + '</div>' +
+        '<div class="v-name">' + c.name + '</div>' +
+        '<div class="v-note">' + c.note + '</div>' +
+        '<div class="v-link">' + c.link + ' →</div>';
+      d.addEventListener("click", function(){
+        if (location.hash !== "#" + c.go) { try { history.replaceState(null, "", "#" + c.go); } catch(err){} }
+        switchView(c.go);
+      });
+      d.addEventListener("keydown", function(e){
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          d.click();
+        }
+      });
+      box.appendChild(d);
+    });
+  }
+
   /* ===== 概览文案 ===== */
   function renderOverview(){
     $("ovGame").textContent = current.name + " · " + current.en;
@@ -1227,6 +1336,7 @@
   }
 
   function renderAll(){
+    renderVerdict();
     renderOverview();
     renderSentiment();
     renderCats();
