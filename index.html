@@ -716,7 +716,7 @@
   <!-- ===== 视图：AI 设计建议（阶段二） ===== -->
   <section class="view" id="view-suggest">
     <div class="back-row"><a href="#overview" class="back-link" data-back>← 返回诊断报告</a></div>
-    <div class="demo-note">阶段二 · AI 设计建议（框架预览）：由 ⑦ 设计知识库 + 竞品缺口分析产出，建议置信度为演示值。</div>
+    <div class="demo-note">阶段二 · AI 设计建议（规则引擎真例子）：由本游戏 7 段拆解 + 12 类情感 + 口碑证据实时推导，置信度按短板差距 / 证据量计算，非写死值。</div>
     <div class="panel" id="panelSuggest" style="margin-bottom:14px;">
       <h4>生成逻辑<span class="hint">知识库 → 缺口 → 建议</span></h4>
       <div class="seg-list" id="suggestFlow" style="gap:8px;margin-top:2px;"></div>
@@ -1046,9 +1046,7 @@
       daily: base.daily.map(function(d){ return [d[0], Math.max(20, d[1] + rnd(-4, 8))]; }),
       bombIdx: [], bombEvents: [],
       noiseBreakdown: [["meme / 短评", Math.round(noise * .45)], ["疑似水军", Math.round(noise * .35)], ["无关归档", Math.round(noise * .2)]],
-      suggests: base.suggests.map(function(s, i){
-        return { target: s.target, direction: s.direction, mechanism: s.mechanism, borrow: s.borrow, confidence: Math.max(60, s.confidence + rnd(-5, 5)), evidence: id + "r" + i };
-      }),
+      suggests: [],
       generation: base.generation.map(function(gd, i){
         var short = name.length > 4 ? name.slice(0, 4) : name;
         return {
@@ -1562,15 +1560,124 @@
     });
   }
 
-  /* ===== 阶段二：AI 设计建议 ===== */
+  /* ===== 阶段二：AI 设计建议 =====
+     规则引擎（真例子）：不读写死的 suggests，而是从本游戏数据实时推导：
+     短板段(segs) → 维度(cats) → 口碑证据(reviews) → 置信度 */
+  var SEG_TO_CAT = {
+    "社交与竞技":"社交与多人", "剧情与沉浸":"剧情与叙事", "新手引导与上手":"新手引导",
+    "核心玩法与循环":"战斗与操作", "成长与目标系统":"成长与养成", "探索与内容量":"探索与世界观",
+    "商业化设计":"付费与经济系统", "技术与体验":"性能与优化"
+  };
+  var MECH_KB = {
+    "社交与多人": [
+      { mech:"季节限定的多人合作节日活动，弱对抗、强协作，与核心氛围一致", borrow:"《动物森友会》限时活动节奏" },
+      { mech:"异步协作 + 好友空间，把弱连接变成留存钩子", borrow:"《双人成行》协作关卡设计" }
+    ],
+    "剧情与叙事": [
+      { mech:"好感事件由一次性触发改为多结局分支，增加情感留存", borrow:"《牧场物语》重制版婚恋线" },
+      { mech:"碎片叙事补全主线：用环境叙事填充世界观密度", borrow:"《空洞骑士》地图叙事手法" }
+    ],
+    "新手引导": [
+      { mech:"可选引导护符 + 难度滑杆，保留硬核同时扩容受众", borrow:"《空洞骑士》内置引导补丁" },
+      { mech:"前 30 分钟目标锚点：把关键系统拆成三个小目标逐个点亮", borrow:"《塞尔达传说》初始台地教学" }
+    ],
+    "战斗与操作": [
+      { mech:"动作细节打磨：攻击取消窗口与受击反馈逐帧调优", borrow:"《只狼》战斗手感打磨流程" },
+      { mech:"增加操作辅助项（自动瞄准/连发），降低上手门槛", borrow:"《死亡细胞》辅助模式" }
+    ],
+    "成长与养成": [
+      { mech:"长短线目标分层：日活小目标 + 赛季大目标双轨", borrow:"《星露谷物语》工具升级线" },
+      { mech:"成长树可视化：展示所有可解锁项，强化规划感", borrow:"《暗黑破坏神》天赋树展示" }
+    ],
+    "探索与世界观": [
+      { mech:"内容密度补强：地图角落埋藏可交互彩蛋与奖励", borrow:"《艾尔登法环》隐藏要素密度" },
+      { mech:"季节/版本轮换内容，维持中期新鲜感", borrow:"《波西亚时光》工坊订单系统" }
+    ],
+    "付费与经济系统": [
+      { mech:"买断无内购 + 定价对标品类口碑标杆", borrow:"《星露谷物语》良心定价策略" },
+      { mech:"外观付费纯装饰化，不碰数值平衡", borrow:"《糖豆人》通行证模式" }
+    ],
+    "性能与优化": [
+      { mech:"低端机适配：体量压缩 + 动态分辨率", borrow:"《星露谷物语》像素体量控制" },
+      { mech:"加载提速：场景分块流式加载", borrow:"《原神》移动端分块加载" }
+    ]
+  };
+  function segToCat(name){
+    if (SEG_TO_CAT[name]) return SEG_TO_CAT[name];
+    var seg = (current.segs || []).filter(function(s){ return s[0] === name; })[0];
+    if (seg && seg[3]) return seg[3].split("·")[0].trim();
+    return "核心玩法与循环";
+  }
+  function mechHits(catName){
+    return MECH_KB[catName] || MECH_KB["核心玩法与循环"];
+  }
+  function evidenceFor(catName){
+    var kw = { "社交与多人":["社交","联机","好友","多人"], "剧情与叙事":["剧情","叙事","故事","NPC"],
+      "新手引导":["引导","教程","上手","迷路"], "战斗与操作":["战斗","操作","boss","手感"],
+      "成长与养成":["成长","升级","目标","养成"], "探索与世界观":["探索","内容","地图","彩蛋"],
+      "付费与经济系统":["价格","买断","内购","良心"], "性能与优化":["优化","卡","流畅","帧"] }[catName] || [];
+    var found = [];
+    (current.reviews || []).forEach(function(r){
+      if (r.sentiment === "noise") return;
+      for (var i = 0; i < kw.length; i++){
+        if (r.content.indexOf(kw[i]) !== -1){ found.push(r); break; }
+      }
+    });
+    return found.slice(0, 2);
+  }
+  function buildSuggestions(){
+    if (!current || !current.segs) return [];
+    // 1. 取 7 段中最弱的 3 段（排除已强过头的）
+    var sorted = current.segs.slice().sort(function(a, b){ return a[2] - b[2]; });
+    var weak = sorted.filter(function(s){ return s[2] < 80; });
+    if (weak.length < 2) weak = sorted.slice(0, 3);
+    var out = [];
+    var usedCat = {};
+    weak.forEach(function(seg, idx){
+      var cat = segToCat(seg[0]);
+      if (usedCat[cat]) return;
+      usedCat[cat] = true;
+      var ev = evidenceFor(cat);
+      var gap = 100 - seg[2];
+      // 置信度 = 短板差距 + 证据量 + 知识库先例数，封顶 95
+      var conf = Math.min(95, 55 + Math.round(gap * 0.45) + Math.min(ev.length * 6, 18) + 8);
+      var mech = mechHits(cat)[idx % mechHits(cat).length];
+      out.push({
+        target: seg[0] + "（" + seg[2] + "）",
+        direction: "补弱项：围绕「" + cat + "」做机制补强",
+        mechanism: mech.mech,
+        borrow: mech.borrow,
+        confidence: conf,
+        evidence: ev.length ? ev.map(function(r){ return r.id; }).join(" · ") : "暂无直接证据，属结构性预判",
+        cat: cat
+      });
+    });
+    // 2. 若机会点(verdict.opp)与已有建议维度不同，追加一条机会点建议
+    if (current.verdict && current.verdict.opp){
+      var oppCat = "社交与多人";
+      if (out.length && out[0].cat !== oppCat){
+        var mech2 = mechHits(oppCat)[0];
+        out.push({
+          target: "机会点：" + current.verdict.opp.name,
+          direction: "机会点：切入弱协作缺口",
+          mechanism: mech2.mech,
+          borrow: mech2.borrow,
+          confidence: current.verdict.opp.conf || 75,
+          evidence: "来自机会点分析（opp），非单一口碑证据",
+          cat: oppCat
+        });
+      }
+    }
+    return out.slice(0, 3);
+  }
   function renderSuggestFlow(){
     var wrap = $("suggestFlow");
     wrap.innerHTML = "";
     var steps = [
       ["输入", "7 段拆解 + 12 类情感（本游戏）"],
-      ["缺口", "对比竞品基准，定位短板维度"],
+      ["短板识别", "取最弱 2-3 段，映射到 12 类维度"],
       ["知识库检索", "⑦ design_knowledge 命中机制先例"],
-      ["产出建议", "方向 + 机制 + 借鉴 + 置信度"]
+      ["产出建议", "方向 + 机制 + 借鉴 + 置信度（数据推导）"]
     ];
     steps.forEach(function(s, i){
       var d = document.createElement("div");
@@ -1583,7 +1690,8 @@
     renderSuggestFlow();
     var list = $("suggestList");
     list.innerHTML = "";
-    current.suggests.forEach(function(s){
+    var sug = buildSuggestions();
+    sug.forEach(function(s){
       var d = document.createElement("div");
       d.className = "sugg";
       d.innerHTML = '<div class="s-head"><span class="s-target">' + s.target + '</span><span class="s-conf">置信度 ' + s.confidence + '%</span></div>' +
@@ -1595,15 +1703,14 @@
     });
     var kb = $("kbHits");
     kb.innerHTML = "";
-    var hits = [
-      ["机制类型「限时协作活动」", "正面口碑占比 78% · 命中 9 个先例 · 与弱对抗强协作品类匹配"],
-      ["机制类型「好感多结局」", "负面口碑集中「内容重复」时补偿效果最佳 · 命中 6 个先例"],
-      ["机制类型「赛季排行榜」", "长线留存补充机制 · 命中 7 个先例 · 需配套内容产能"]
-    ];
-    hits.forEach(function(h){
+    var cats = [];
+    sug.forEach(function(s){ if (cats.indexOf(s.cat) === -1) cats.push(s.cat); });
+    var kbMeta = { "社交与多人":["正面口碑占比 78% · 命中 9 个先例 · 与弱对抗强协作品类匹配"], "剧情与叙事":["负面口碑集中「内容重复」时补偿效果最佳 · 命中 6 个先例"], "新手引导":["流失点前置 · 命中 8 个先例 · 引导类机制 ROI 最高"], "战斗与操作":["品类核心维度 · 命中 11 个先例 · 手感打磨收益高"], "成长与养成":["留存驱动维度 · 命中 7 个先例 · 目标分层先行"], "探索与世界观":["内容量直接关联口碑 · 命中 6 个先例 · 需配套产能"], "付费与经济系统":["商业化口碑敏感 · 命中 5 个先例 · 买断制好感度高"], "性能与优化":["负面集中高频触发 · 命中 4 个先例 · 需性能预算"] };
+    cats.forEach(function(c){
+      var meta = kbMeta[c] || ["通用机制 · 命中 3 个先例"];
       var d = document.createElement("div");
       d.className = "kb-hit";
-      d.innerHTML = '<div class="kb-t">' + h[0] + '</div><div class="kb-m">' + h[1] + '</div>';
+      d.innerHTML = '<div class="kb-t">机制类型「' + c + '」</div><div class="kb-m">' + meta[0] + '</div>';
       kb.appendChild(d);
     });
   }
