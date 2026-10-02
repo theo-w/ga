@@ -3,608 +3,67 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Game Lab · AI 原生游戏立项实验室原型：从玩家口碑到机制假设、可玩原型、实验验证与数据回流。">
-<title>Game Lab · AI 原生游戏立项实验室</title>
-<style>
-  :root {
-    --bg: #070B12;
-    --panel: #0F1623;
-    --panel-2: #131C2C;
-    --line: rgba(120, 145, 190, 0.18);
-    --text: #EAF1FA;
-    --muted: #8DA1B8;
-    --accent: #4ED4D0;
-    --accent-2: #A78BFA;
-    --warn: #F0B45B;
-    --pos: #62D26F;
-    --neg: #EF6B73;
-    --radius: 14px;
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background:
-      radial-gradient(1200px 600px at 10% -10%, rgba(78,212,208,.10), transparent 60%),
-      radial-gradient(1000px 500px at 90% 0%, rgba(167,139,250,.10), transparent 55%),
-      var(--bg);
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-    min-height: 100vh;
-  }
-
-  .topbar {
-    position: sticky;
-    top: 0;
-    z-index: 30;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 14px 22px;
-    border-bottom: 1px solid var(--line);
-    background: rgba(7,11,18,.92);
-    backdrop-filter: blur(12px);
-  }
-  .brand { display: flex; align-items: center; gap: 10px; }
-  .brand-mark {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    display: grid;
-    place-items: center;
-    color: #06121A;
-    font-weight: 800;
-    font-size: 15px;
-  }
-  .brand-name { font-size: 15px; font-weight: 750; letter-spacing: .2px; }
-  .brand-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
-
-  nav.tabs {
-    display: flex;
-    gap: 4px;
-    margin-left: auto;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-  nav.tabs::-webkit-scrollbar { display: none; }
-  nav.tabs button {
-    border: none;
-    background: transparent;
-    color: var(--muted);
-    font-size: 12.5px;
-    font-family: inherit;
-    padding: 8px 12px;
-    border-radius: 10px;
-    white-space: nowrap;
-    cursor: pointer;
-    transition: .15s;
-  }
-  nav.tabs button:hover { color: var(--text); background: rgba(120,145,190,.10); }
-  nav.tabs button.active { color: var(--accent); background: rgba(78,212,208,.12); font-weight: 650; }
-
-  .wrap {
-    max-width: 1180px;
-    margin: 0 auto;
-    padding: 24px 22px 48px;
-  }
-
-  .hero {
-    display: grid;
-    grid-template-columns: 1.15fr .85fr;
-    gap: 16px;
-    margin-bottom: 18px;
-  }
-  .panel {
-    background: linear-gradient(180deg, rgba(255,255,255,.02), transparent 35%), var(--panel);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 18px;
-  }
-  .hero h1 {
-    font-size: 26px;
-    line-height: 1.25;
-    letter-spacing: -.2px;
-    margin-bottom: 10px;
-  }
-  .hero h1 span { color: var(--accent); }
-  .hero p { color: var(--muted); font-size: 13px; line-height: 1.8; }
-  .hero .pill-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
-  .pill {
-    font-size: 11px;
-    color: var(--text);
-    border: 1px solid var(--line);
-    background: rgba(120,145,190,.08);
-    padding: 5px 10px;
-    border-radius: 999px;
-  }
-  .pill b { color: var(--accent); }
-
-  .flow-card {
-    display: grid;
-    gap: 10px;
-  }
-  .flow-step {
-    display: grid;
-    grid-template-columns: 28px 1fr;
-    gap: 10px;
-    align-items: start;
-  }
-  .flow-step .num {
-    width: 26px;
-    height: 26px;
-    border-radius: 8px;
-    background: rgba(78,212,208,.14);
-    color: var(--accent);
-    display: grid;
-    place-items: center;
-    font-size: 12px;
-    font-weight: 700;
-  }
-  .flow-step .t { font-size: 13px; font-weight: 650; }
-  .flow-step .d { font-size: 11.5px; color: var(--muted); margin-top: 3px; line-height: 1.6; }
-
-  .view { display: none; }
-  .view.active { display: block; }
-
-  .section-head { display: flex; align-items: end; gap: 12px; margin: 20px 0 12px; flex-wrap: wrap; }
-  .section-head h2 { font-size: 18px; letter-spacing: -.1px; }
-  .section-head p { font-size: 12px; color: var(--muted); margin-top: 4px; }
-  .section-head .tag { font-size: 10.5px; color: var(--accent); border: 1px solid rgba(78,212,208,.30); padding: 4px 8px; border-radius: 999px; margin-left: auto; }
-
-  .grid { display: grid; gap: 14px; }
-  .grid.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .grid.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .grid.cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .grid.span-2 { grid-column: span 2; }
-
-  .panel h3 { font-size: 14px; margin-bottom: 8px; }
-  .panel .sub { font-size: 11.5px; color: var(--muted); line-height: 1.7; }
-
-  table { width: 100%; border-collapse: collapse; font-size: 12px; }
-  th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
-  th { color: var(--muted); font-weight: 500; font-size: 11px; }
-  tr:last-child td { border-bottom: none; }
-
-  .bar-row { display: grid; grid-template-columns: 88px 1fr 52px; gap: 10px; align-items: center; margin-bottom: 10px; }
-  .bar-row span { font-size: 12px; color: var(--text); }
-  .bar-track { height: 8px; border-radius: 999px; background: rgba(120,145,190,.12); overflow: hidden; }
-  .bar-fill { height: 100%; border-radius: 999px; }
-  .bar-fill.satisfied { background: linear-gradient(90deg, #4ED4D0, #A78BFA); }
-  .bar-fill.unmet { background: linear-gradient(90deg, #EF6B73, #F0B45B); }
-  .bar-row b { font-size: 11.5px; color: var(--muted); text-align: right; }
-
-  .gap-card { border: 1px solid var(--line); border-radius: 12px; padding: 14px; background: var(--panel-2); }
-  .gap-card .top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-  .gap-card .name { font-size: 13px; font-weight: 700; }
-  .gap-card .level { font-size: 10.5px; padding: 3px 8px; border-radius: 999px; background: rgba(240,180,91,.12); color: var(--warn); }
-  .gap-card .desc { font-size: 11.5px; color: var(--muted); line-height: 1.7; }
-  .gap-card .meta { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
-  .gap-card .meta span { font-size: 10.5px; color: var(--text); background: rgba(120,145,190,.10); border: 1px solid var(--line); padding: 4px 8px; border-radius: 999px; }
-
-  .hypothesis-card { border: 1px solid rgba(78,212,208,.22); border-radius: 14px; padding: 16px; background: linear-gradient(145deg, rgba(78,212,208,.06), rgba(167,139,250,.04)); }
-  .hypothesis-card .head { display: flex; gap: 10px; align-items: start; }
-  .hypothesis-card .id { font-size: 11px; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
-  .hypothesis-card h4 { font-size: 14px; line-height: 1.5; margin: 4px 0 10px; }
-  .kv { display: grid; grid-template-columns: 88px 1fr; gap: 8px; font-size: 12px; }
-  .kv dt { color: var(--muted); }
-  .kv dd { color: var(--text); line-height: 1.7; }
-  .risk { margin-top: 10px; font-size: 11.5px; color: var(--warn); }
-  .evidence { margin-top: 8px; font-size: 11px; color: var(--accent); }
-
-  .loop-box { border: 1px dashed rgba(78,212,208,.25); border-radius: 12px; padding: 14px; }
-  .loop-box .title { font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 8px; }
-  .loop-box .desc { font-size: 12px; color: var(--text); line-height: 1.8; }
-
-  .timeline { display: grid; gap: 10px; }
-  .time-item { display: grid; grid-template-columns: 72px 1fr; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
-  .time-item:last-child { border-bottom: none; }
-  .time-item .minute { font-size: 12px; color: var(--accent); font-weight: 700; }
-  .time-item .what { font-size: 12.5px; font-weight: 650; }
-  .time-item .why { font-size: 11.5px; color: var(--muted); margin-top: 4px; line-height: 1.7; }
-
-  .metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-  .metric { border: 1px solid var(--line); border-radius: 12px; padding: 12px; background: var(--panel-2); }
-  .metric .k { font-size: 11px; color: var(--muted); }
-  .metric .v { font-size: 20px; font-weight: 750; margin-top: 4px; }
-  .metric .d { font-size: 10.5px; color: var(--muted); margin-top: 4px; }
-
-  .group-card { border: 1px solid var(--line); border-radius: 12px; padding: 14px; background: var(--panel-2); }
-  .group-card .name { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
-  .group-card .desc { font-size: 12px; color: var(--muted); line-height: 1.7; }
-  .group-card ul { margin: 8px 0 0 18px; font-size: 12px; color: var(--text); line-height: 1.8; }
-
-  .funnel-step { display: grid; grid-template-columns: 150px 1fr 70px; gap: 10px; align-items: center; margin-bottom: 9px; }
-  .funnel-step .label { font-size: 12px; }
-  .funnel-step .track { height: 10px; border-radius: 999px; background: rgba(120,145,190,.12); overflow: hidden; }
-  .funnel-step .fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
-  .funnel-step b { font-size: 11.5px; color: var(--muted); text-align: right; }
-
-  .knowledge-card { border: 1px solid var(--line); border-radius: 12px; padding: 14px; background: var(--panel-2); }
-  .knowledge-card .title { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
-  .knowledge-card .row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
-  .knowledge-card .row span { font-size: 10.5px; color: var(--text); border: 1px solid var(--line); padding: 4px 8px; border-radius: 999px; background: rgba(120,145,190,.08); }
-  .knowledge-card .desc { font-size: 11.5px; color: var(--muted); line-height: 1.7; }
-
-  .note {
-    border: 1px solid rgba(240,180,91,.22);
-    background: rgba(240,180,91,.07);
-    color: var(--warn);
-    border-radius: 12px;
-    padding: 12px 14px;
-    font-size: 11.5px;
-    line-height: 1.7;
-    margin-top: 14px;
-  }
-
-  .foot { text-align: center; color: var(--muted); font-size: 11px; margin-top: 28px; }
-
-  @media (max-width: 900px) {
-    .hero { grid-template-columns: 1fr; }
-    .grid.cols-2, .grid.cols-3, .grid.cols-4 { grid-template-columns: 1fr; }
-    .grid.span-2 { grid-column: auto; }
-    .metric-grid { grid-template-columns: 1fr; }
-    nav.tabs { margin-left: 0; }
-  }
-</style>
+<meta name="description" content="Game Lab · AI 原生游戏立项实验室 MVP：从玩家口碑到机制假设、可玩原型、实验验证与数据回流。">
+<title>Game Lab · AI 原生游戏立项实验室 MVP</title>
+<link rel="stylesheet" href="css/lab.css">
 </head>
 <body>
-
 <header class="topbar">
   <div class="brand">
     <div class="brand-mark">GL</div>
     <div>
       <div class="brand-name">Game Lab</div>
-      <div class="brand-sub">AI 原生游戏立项实验室</div>
+      <div class="brand-sub">AI 原生游戏立项实验室 · Functional MVP</div>
     </div>
   </div>
   <nav class="tabs" role="tablist" aria-label="Game Lab 主流程">
-    <button type="button" class="active" data-view="input" role="tab" aria-selected="true">输入洞察</button>
-    <button type="button" data-view="hypothesis" role="tab" aria-selected="false">机制假设</button>
-    <button type="button" data-view="prototype" role="tab" aria-selected="false">原型方案</button>
-    <button type="button" data-view="experiment" role="tab" aria-selected="false">实验设计</button>
-    <button type="button" data-view="result" role="tab" aria-selected="false">结果回流</button>
-    <button type="button" data-view="knowledge" role="tab" aria-selected="false">机制知识库</button>
+    <button type="button" role="tab" data-view="input">输入洞察</button>
+    <button type="button" role="tab" data-view="hypothesis">机制假设</button>
+    <button type="button" role="tab" data-view="experiment">实验设计</button>
+    <button type="button" role="tab" data-view="prototype">机制原型</button>
+    <button type="button" role="tab" data-view="result">结果回流</button>
+    <button type="button" role="tab" data-view="knowledge">机制知识库</button>
   </nav>
 </header>
 
 <main class="wrap">
   <section class="hero" aria-label="产品定位">
     <div class="panel">
-      <h1>不是“一键生成游戏”，<br>而是 <span>AI 原生的游戏机制验证闭环</span></h1>
+      <h1>不是“一键生成游戏”，<br>而是 <span>可跑通的机制验证闭环</span></h1>
       <p>
-        Game Lab 的目标是把传统立项会议里的“几个人凭经验组合玩法”，
-        变成一条可重复的工程化流水线：
-        从真实玩家口碑中识别动机缺口，生成机制假设，产出最小可玩原型，
-        通过对照实验验证机制是否成立，并把结果沉淀为可复用的机制知识。
+        输入口碑样本，识别玩家动机与缺口；生成机制假设和实验方案；
+        在浏览器中游玩最小机制原型，采集行为事件，输出实验结论并沉淀机制知识。
+        当前版本为 Local-first 功能型 MVP，不依赖后端。
       </p>
       <div class="pill-row">
-        <span class="pill">目标用户：<b>产品经理 / 策划 / 立项评审</b></span>
-        <span class="pill">核心交付：<b>机制假设 + 原型 + 实验结论</b></span>
-        <span class="pill">当前形态：<b>规则引擎演示原型</b></span>
+        <span class="pill">输入：<b>评论样本</b></span>
+        <span class="pill">输出：<b>机制假设 + 实验结果</b></span>
+        <span class="pill">存储：<b>浏览器 localStorage</b></span>
       </div>
     </div>
     <div class="panel flow-card" aria-label="工作流">
-      <div class="flow-step"><div class="num">1</div><div><div class="t">口碑输入</div><div class="d">竞品评论、社区讨论、行为数据</div></div></div>
-      <div class="flow-step"><div class="num">2</div><div><div class="t">动机与缺口识别</div><div class="d">从玩家语言中提取真实动机</div></div></div>
-      <div class="flow-step"><div class="num">3</div><div><div class="t">机制假设生成</div><div class="d">把机会转成可测试的设计命题</div></div></div>
-      <div class="flow-step"><div class="num">4</div><div><div class="t">最小原型生成</div><div class="d">5-15 分钟可玩机制切片</div></div></div>
-      <div class="flow-step"><div class="num">5</div><div><div class="t">实验与回流</div><div class="d">对照组、行为数据、知识沉淀</div></div></div>
+      <div class="flow-step"><div class="num">1</div><div><div class="t">口碑输入</div><div class="d">演示数据 / JSON / 按行输入</div></div></div>
+      <div class="flow-step"><div class="num">2</div><div><div class="t">动机与缺口识别</div><div class="d">本地规则引擎 + 证据链</div></div></div>
+      <div class="flow-step"><div class="num">3</div><div><div class="t">机制假设与实验</div><div class="d">可测试命题 + 对照组设计</div></div></div>
+      <div class="flow-step"><div class="num">4</div><div><div class="t">可玩原型与回流</div><div class="d">行为事件 + 指标 + 知识沉淀</div></div></div>
     </div>
   </section>
 
   <div class="note">
-    当前页面为产品主线原型，数据为演示样例。它展示的是“AI 原生立项实验室”的目标工作流，不代表已接入真实评论数据或模型能力。
+    当前版本验证产品主线，数据保存在本地浏览器。行为实验样本通常很小，结果不能直接用于正式立项决策。
   </div>
 
-  <!-- 输入洞察 -->
-  <section class="view active" id="view-input" role="tabpanel" aria-label="input">
-    <div class="section-head">
-      <h2>输入洞察</h2>
-      <p>从竞品集合中识别玩家动机、口碑缺口与机会结构</p>
-      <span class="tag">Step 1</span>
-    </div>
+  <section class="view active" id="view-input" role="tabpanel"></section>
+  <section class="view" id="view-hypothesis" role="tabpanel"></section>
+  <section class="view" id="view-experiment" role="tabpanel"></section>
+  <section class="view" id="view-prototype" role="tabpanel"></section>
+  <section class="view" id="view-result" role="tabpanel"></section>
+  <section class="view" id="view-knowledge" role="tabpanel"></section>
 
-    <div class="grid cols-2">
-      <div class="panel">
-        <h3>竞品输入</h3>
-        <table>
-          <thead>
-            <tr><th>竞品</th><th>平台</th><th>核心品类</th><th>样本窗口</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>幻兽帕鲁</td><td>Steam</td><td>生存建造 + 生物收集</td><td>2024-01 至 2024-03</td></tr>
-            <tr><td>星露谷物语</td><td>Steam</td><td>农场模拟</td><td>2024-01 至 2024-06</td></tr>
-            <tr><td>Valheim</td><td>Steam</td><td>合作生存</td><td>2024-01 至 2024-05</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="panel">
-        <h3>动机强度</h3>
-        <p class="sub">按“已满足”和“未被满足”拆分，用于识别机会而不是只看品类热度。</p>
-        <div style="margin-top:14px;">
-          <div class="bar-row"><span>收集</span><div class="bar-track"><div class="bar-fill satisfied" style="width:86%"></div></div><b>86%</b></div>
-          <div class="bar-row"><span>自动化</span><div class="bar-track"><div class="bar-fill unmet" style="width:72%"></div></div><b>72%</b></div>
-          <div class="bar-row"><span>建造</span><div class="bar-track"><div class="bar-fill satisfied" style="width:78%"></div></div><b>78%</b></div>
-          <div class="bar-row"><span>协作</span><div class="bar-track"><div class="bar-fill unmet" style="width:64%"></div></div><b>64%</b></div>
-          <div class="bar-row"><span>探索</span><div class="bar-track"><div class="bar-fill satisfied" style="width:70%"></div></div><b>70%</b></div>
-          <div class="bar-row"><span>战斗</span><div class="bar-track"><div class="bar-fill satisfied" style="width:58%"></div></div><b>58%</b></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="section-head">
-      <h2>口碑缺口</h2>
-      <p>跨竞品重复出现，且能被机制设计改善的问题</p>
-      <span class="tag">Step 2</span>
-    </div>
-    <div class="grid cols-3">
-      <div class="gap-card">
-        <div class="top"><div class="name">生物缺少生产角色</div><div class="level">高机会</div></div>
-        <div class="desc">玩家喜欢收集生物，但希望生物不止用于战斗或展示，还能参与基地生产。</div>
-        <div class="meta"><span>动机：收集 / 自动化</span><span>跨竞品：3</span><span>强度：72%</span></div>
-      </div>
-      <div class="gap-card">
-        <div class="top"><div class="name">后期目标不足</div><div class="level">中高机会</div></div>
-        <div class="desc">玩家在中后期缺少共同目标，容易从“持续经营”滑向“重复劳动”。</div>
-        <div class="meta"><span>动机：协作 / 成长</span><span>跨竞品：2</span><span>强度：64%</span></div>
-      </div>
-      <div class="gap-card">
-        <div class="top"><div class="name">自动化策略表达不足</div><div class="level">中机会</div></div>
-        <div class="desc">现有自动化偏流水线摆放，玩家希望用角色或生物组合表达个人策略。</div>
-        <div class="meta"><span>动机：自动化 / 表达</span><span>跨竞品：2</span><span>强度：58%</span></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 机制假设 -->
-  <section class="view" id="view-hypothesis" role="tabpanel" aria-label="hypothesis">
-    <div class="section-head">
-      <h2>机制假设</h2>
-      <p>把口碑缺口转成可验证的设计命题</p>
-      <span class="tag">Step 3</span>
-    </div>
-
-    <div class="grid cols-3">
-      <div class="hypothesis-card">
-        <div class="head"><span class="id">HYP-001</span></div>
-        <h4>生物不只是战斗伙伴，而是可部署的生产单元</h4>
-        <dl class="kv">
-          <dt>目标玩家</dt><dd>喜欢收集、自动化与轻协作的玩家</dd>
-          <dt>机制组合</dt><dd>生物收集 + 岗位部署 + 基地自动化</dd>
-          <dt>差异点</dt><dd>收集物从“资产”变成“生产力与情感资产”</dd>
-          <dt>先例</dt><dd>幻兽帕鲁 / 星露谷物语 / Valheim</dd>
-          <dt>验证方式</dt><dd>10 分钟原型 + A/B 实验</dd>
-        </dl>
-        <div class="risk">风险：自动化过强可能削弱玩家主动操作参与感。</div>
-        <div class="evidence">证据：跨 3 款竞品重复出现“希望生物参与生产”动机。</div>
-      </div>
-
-      <div class="hypothesis-card">
-        <div class="head"><span class="id">HYP-002</span></div>
-        <h4>共同祭坛目标能提升后期协作动机</h4>
-        <dl class="kv">
-          <dt>目标玩家</dt><dd>偏社交、喜欢共同目标的中小队玩家</dd>
-          <dt>机制组合</dt><dd>资源贡献 + 阶段解锁 + 共同建造</dd>
-          <dt>差异点</dt><dd>把个人自动化成果转化为团队共享目标</dd>
-          <dt>先例</dt><dd>Valheim / 帕鲁基地建设</dd>
-          <dt>验证方式</dt><dd>有无共同目标两个版本对照</dd>
-        </dl>
-        <div class="risk">风险：共同目标可能被高活跃玩家代打，弱化普通玩家参与。</div>
-        <div class="evidence">证据：后期目标不足在 2 款竞品中重复出现。</div>
-      </div>
-
-      <div class="hypothesis-card">
-        <div class="head"><span class="id">HYP-003</span></div>
-        <h4>生物岗位组合能创造策略表达</h4>
-        <dl class="kv">
-          <dt>目标玩家</dt><dd>喜欢系统优化与构建的玩家</dd>
-          <dt>机制组合</dt><dd>岗位角色 + 组合加成 + 产线规划</dd>
-          <dt>差异点</dt><dd>让自动化从流水线摆放升级为生物配队策略</dd>
-          <dt>先例</dt><dd>自动化工厂 / 生物收集</dd>
-          <dt>验证方式</dt><dd>是否主动调整岗位组合与重开</dd>
-        </dl>
-        <div class="risk">风险：策略过深可能提高理解成本。</div>
-        <div class="evidence">证据：自动化策略表达不足的动机强度为 58%。</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 原型方案 -->
-  <section class="view" id="view-prototype" role="tabpanel" aria-label="prototype">
-    <div class="section-head">
-      <h2>原型方案</h2>
-      <p>只验证一个机制假设，不追求完整游戏</p>
-      <span class="tag">Step 4</span>
-    </div>
-
-    <div class="grid cols-2">
-      <div class="panel">
-        <h3>10 分钟机制切片</h3>
-        <p class="sub">目标：验证 HYP-001「生物作为生产单元」是否产生兴趣、理解与重玩动机。</p>
-        <div class="timeline" style="margin-top:12px;">
-          <div class="time-item"><div class="minute">0-1 分钟</div><div><div class="what">基础教学</div><div class="why">学会捕捉生物与查看能力</div></div></div>
-          <div class="time-item"><div class="minute">1-3 分钟</div><div><div class="what">捕捉 3 类生物</div><div class="why">确认收集动机是否成立</div></div></div>
-          <div class="time-item"><div class="minute">3-6 分钟</div><div><div class="what">分配岗位</div><div class="why">观察玩家是否主动规划生物组合</div></div></div>
-          <div class="time-item"><div class="minute">6-9 分钟</div><div><div class="what">完成资源目标</div><div class="why">验证自动化反馈是否清晰</div></div></div>
-          <div class="time-item"><div class="minute">9-10 分钟</div><div><div class="what">结果与分享</div><div class="why">采集重玩与分享意愿</div></div></div>
-        </div>
-      </div>
-
-      <div class="panel">
-        <h3>核心循环</h3>
-        <div class="loop-box">
-          <div class="title">捕捉 → 分配 → 生产 → 解锁 → 再捕捉</div>
-          <div class="desc">
-            玩家捕捉具有不同能力的生物，把它们部署到采集、加工、运输等岗位，
-            生成资源并解锁更高级的生物或设施。
-            关键不是美术表现，而是确认这个循环是否让玩家产生持续调整和重开动力。
-          </div>
-        </div>
-
-        <h3 style="margin-top:16px;">埋点事件</h3>
-        <div class="grid cols-2" style="margin-top:10px;">
-          <div class="metric"><div class="k">开始</div><div class="v">start</div><div class="d">进入原型</div></div>
-          <div class="metric"><div class="k">捕捉</div><div class="v">capture</div><div class="d">首次与累计捕捉</div></div>
-          <div class="metric"><div class="k">分配</div><div class="v">assign</div><div class="d">岗位调整行为</div></div>
-          <div class="metric"><div class="k">完成</div><div class="v">complete</div><div class="d">达成资源目标</div></div>
-          <div class="metric"><div class="k">重开</div><div class="v">restart</div><div class="d">二次尝试</div></div>
-          <div class="metric"><div class="k">分享</div><div class="v">share</div><div class="d">传播意愿</div></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 实验设计 -->
-  <section class="view" id="view-experiment" role="tabpanel" aria-label="experiment">
-    <div class="section-head">
-      <h2>实验设计</h2>
-      <p>用对照组与实验组判断机制是否真的产生差异</p>
-      <span class="tag">Step 5</span>
-    </div>
-
-    <div class="grid cols-2">
-      <div class="group-card">
-        <div class="name">对照组 · 基础建造</div>
-        <div class="desc">玩家手动采集资源并完成目标，不包含生物岗位机制。</div>
-        <ul>
-          <li>手动采集</li>
-          <li>固定建筑解锁</li>
-          <li>无生物生产单元</li>
-        </ul>
-      </div>
-      <div class="group-card">
-        <div class="name">实验组 · 生物生产</div>
-        <div class="desc">玩家捕捉生物并分配岗位，由生物组合驱动生产。</div>
-        <ul>
-          <li>捕捉 3 类生物</li>
-          <li>岗位部署与组合加成</li>
-          <li>共同祭坛目标</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="panel" style="margin-top:14px;">
-      <h3>核心指标与通过门槛</h3>
-      <table>
-        <thead>
-          <tr><th>指标</th><th>定义</th><th>最低通过线</th><th>为什么重要</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>完成率</td><td>完成 10 分钟目标的人数占比</td><td>≥ 50%</td><td>确认机制可理解、可完成</td></tr>
-          <tr><td>重开率</td><td>完成或结束后再次开始占比</td><td>≥ 30%</td><td>确认是否存在二次兴趣</td></tr>
-          <tr><td>主动调整率</td><td>玩家至少调整一次生物岗位</td><td>≥ 40%</td><td>确认机制是否产生策略表达</td></tr>
-          <tr><td>分享意愿</td><td>点击分享或愿意推荐</td><td>≥ 20%</td><td>确认是否存在传播信号</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <!-- 结果回流 -->
-  <section class="view" id="view-result" role="tabpanel" aria-label="result">
-    <div class="section-head">
-      <h2>结果回流</h2>
-      <p>把实验结果变成下一版机制判断</p>
-      <span class="tag">Step 6</span>
-    </div>
-
-    <div class="panel">
-      <h3>行为漏斗</h3>
-      <div style="margin-top:14px;">
-        <div class="funnel-step"><div class="label">进入原型</div><div class="track"><div class="fill" style="width:100%"></div></div><b>100%</b></div>
-        <div class="funnel-step"><div class="label">完成教学</div><div class="track"><div class="fill" style="width:84%"></div></div><b>84%</b></div>
-        <div class="funnel-step"><div class="label">捕捉 3 类生物</div><div class="track"><div class="fill" style="width:72%"></div></div><b>72%</b></div>
-        <div class="funnel-step"><div class="label">首次分配岗位</div><div class="track"><div class="fill" style="width:61%"></div></div><b>61%</b></div>
-        <div class="funnel-step"><div class="label">完成资源目标</div><div class="track"><div class="fill" style="width:52%"></div></div><b>52%</b></div>
-        <div class="funnel-step"><div class="label">重开或分享</div><div class="track"><div class="fill" style="width:33%"></div></div><b>33%</b></div>
-      </div>
-    </div>
-
-    <div class="grid cols-3" style="margin-top:14px;">
-      <div class="metric"><div class="k">完成率</div><div class="v">52%</div><div class="d">达到通过线</div></div>
-      <div class="metric"><div class="k">主动调整率</div><div class="v">61%</div><div class="d">策略表达成立</div></div>
-      <div class="metric"><div class="k">重开 / 分享</div><div class="v">33%</div><div class="d">存在二次兴趣信号</div></div>
-    </div>
-
-    <div class="panel" style="margin-top:14px;">
-      <h3>下一版机制方向</h3>
-      <p class="sub">结果不是“立项 / 不立项”的二元判断，而是给出下一轮实验方向。</p>
-      <div class="grid cols-3" style="margin-top:12px;">
-        <div class="group-card">
-          <div class="name">保留</div>
-          <div class="desc">生物岗位机制；清晰的核心循环；10 分钟目标结构。</div>
-        </div>
-        <div class="group-card">
-          <div class="name">修改</div>
-          <div class="desc">降低教学成本；强化岗位组合反馈；增加更明确的策略提示。</div>
-        </div>
-        <div class="group-card">
-          <div class="name">继续验证</div>
-          <div class="desc">共同祭坛是否真正提升协作动机，或只是提供额外目标。</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 机制知识库 -->
-  <section class="view" id="view-knowledge" role="tabpanel" aria-label="knowledge">
-    <div class="section-head">
-      <h2>机制知识库</h2>
-      <p>沉淀“机制 → 动机 → 效果 → 边界”</p>
-      <span class="tag">Step 7</span>
-    </div>
-
-    <div class="grid cols-3">
-      <div class="knowledge-card">
-        <div class="title">生物岗位机制</div>
-        <div class="row"><span>动机：收集</span><span>自动化</span><span>表达</span></div>
-        <div class="desc">在生存建造类中，把收集物转成生产单元可提升策略表达，但需要控制自动化深度，避免玩家失去主动参与。</div>
-      </div>
-      <div class="knowledge-card">
-        <div class="title">共同目标机制</div>
-        <div class="row"><span>动机：协作</span><span>成长</span><span>社交</span></div>
-        <div class="desc">共同建造目标适合中小队协作，但需要防止高活跃玩家代打，建议加入个人贡献可见性。</div>
-      </div>
-      <div class="knowledge-card">
-        <div class="title">岗位组合加成</div>
-        <div class="row"><span>动机：策略</span><span>优化</span><span>重玩</span></div>
-        <div class="desc">组合加成能提高重开率，但初期只保留 2-3 个可理解变量，避免策略复杂度压过核心乐趣。</div>
-      </div>
-    </div>
-  </section>
-
-  <div class="foot">
-    Game Lab · AI 原生游戏立项实验室 · 规则引擎演示原型 · 数据为演示样例
-  </div>
+  <div class="foot">Game Lab · Functional MVP · Local-first · 数据保存在浏览器本地</div>
 </main>
 
-<script>
-(function () {
-  "use strict";
-  var buttons = document.querySelectorAll("nav.tabs button");
-  var views = document.querySelectorAll(".view");
-
-  function show(name) {
-    views.forEach(function (v) { v.classList.toggle("active", v.id === "view-" + name); });
-    buttons.forEach(function (b) {
-      var active = b.dataset.view === name;
-      b.classList.toggle("active", active);
-      b.setAttribute("aria-selected", active ? "true" : "false");
-    });
-  }
-
-  buttons.forEach(function (button) {
-    button.addEventListener("click", function () {
-      show(button.dataset.view);
-      history.replaceState(null, "", "#" + button.dataset.view);
-    });
-  });
-
-  var initial = (location.hash || "#input").replace("#", "");
-  if (["input", "hypothesis", "prototype", "experiment", "result", "knowledge"].indexOf(initial) !== -1) {
-    show(initial);
-  }
-})();
-</script>
+<script src="js/engine.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>
