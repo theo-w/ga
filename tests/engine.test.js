@@ -101,5 +101,94 @@ test("builds mechanism knowledge only after sessions exist", () => {
   const knowledge = engine.buildKnowledge(summary, hypothesis);
   assert.equal(knowledge.mechanism, hypothesis.title);
   assert.equal(knowledge.effect.completionRate, 1);
-  assert.match(knowledge.boundary, /样本少于 5/);
+  assert.match(knowledge.boundary, /样本少于 12/);
+});
+
+test("calculates Wilson interval boundaries", () => {
+  const zero = engine.wilsonInterval(0, 10);
+  assert.equal(zero.rate, 0);
+  assert.equal(zero.lower, 0);
+  assert.equal(zero.upper, 0.28);
+
+  const all = engine.wilsonInterval(10, 10);
+  assert.equal(all.rate, 1);
+  assert.equal(all.lower, 0.72);
+  assert.equal(all.upper, 1);
+
+  const mixed = engine.wilsonInterval(5, 10);
+  assert.equal(mixed.rate, 0.5);
+  assert.equal(mixed.lower, 0.24);
+  assert.equal(mixed.upper, 0.76);
+
+  assert.equal(engine.wilsonInterval(11, 10), null);
+  assert.equal(engine.wilsonInterval(-1, 10), null);
+  assert.equal(engine.wilsonInterval(1, 0), null);
+});
+
+test("detects interval overlap", () => {
+  assert.equal(engine.intervalsOverlap(
+    { lower: 0.1, upper: 0.3 },
+    { lower: 0.2, upper: 0.4 }
+  ), true);
+  assert.equal(engine.intervalsOverlap(
+    { lower: 0.4, upper: 0.6 },
+    { lower: 0.1, upper: 0.3 }
+  ), false);
+  assert.equal(engine.intervalsOverlap(null, { lower: 0.1, upper: 0.2 }), false);
+});
+
+test("summarizes sample status and exploratory judgment", () => {
+  function session(group, complete) {
+    return {
+      group,
+      sessionId: group + "-" + Math.random().toString(36).slice(2),
+      events: complete
+        ? [{ type: "start" }, { type: "tutorial_complete" }, { type: "complete" }]
+        : [{ type: "start" }]
+    };
+  }
+
+  const small = engine.summarizeSessions([
+    session("treatment", true),
+    session("treatment", false)
+  ]);
+  assert.equal(small.groups[1].sampleStatus, "small");
+  assert.equal(small.judgment.status, "insufficient");
+
+  const exploratory = engine.summarizeSessions([
+    session("treatment", true),
+    session("treatment", true),
+    session("treatment", true),
+    session("treatment", true),
+    session("treatment", true)
+  ]);
+  assert.equal(exploratory.groups[1].sampleStatus, "partial");
+  assert.equal(exploratory.judgment.status, "exploratory");
+
+  const ready = engine.summarizeSessions([
+    ...Array.from({ length: 12 }, () => session("control", true)),
+    ...Array.from({ length: 12 }, () => session("treatment", true))
+  ]);
+  assert.equal(ready.groups[0].sampleStatus, "ready");
+  assert.equal(ready.groups[1].sampleStatus, "ready");
+  assert.equal(ready.judgment.sampleStatus, "ready");
+});
+
+test("reports comparison availability and interval overlap", () => {
+  function session(group, complete, shared) {
+    const events = [{ type: "start" }];
+    if (complete) events.push({ type: "complete" });
+    if (shared) events.push({ type: "share_intent" });
+    return { group, sessionId: group + "-" + Math.random().toString(36).slice(2), events };
+  }
+
+  const summary = engine.summarizeSessions([
+    session("control", false, false),
+    session("treatment", true, true)
+  ]);
+
+  assert.equal(summary.comparison.completionComparisonAvailable, true);
+  assert.equal(summary.comparison.shareComparisonAvailable, true);
+  assert.equal(summary.comparison.completionIntervalsOverlap, true);
+  assert.equal(summary.comparison.shareIntervalsOverlap, true);
 });

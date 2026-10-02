@@ -592,10 +592,32 @@
     renderPrototype();
   }
 
+  function formatInterval(value) {
+    if (!value) return "—";
+    return Math.round(value.rate * 100) + "%<br><small>CI " +
+      Math.round(value.lower * 100) + "%–" +
+      Math.round(value.upper * 100) + "%</small>";
+  }
+
+  function comparisonNote(metricLabel, available, overlap) {
+    if (!available) return "";
+    if (overlap) {
+      return "<li>" + escapeHTML(metricLabel) + "的 95% 置信区间重叠，暂不能判断组间差异。</li>";
+    }
+    return "<li>" + escapeHTML(metricLabel) + "的 95% 置信区间不重叠，出现差异信号，但仍需达到目标样本。</li>";
+  }
+
   function renderResult() {
     var summary = window.GameLabEngine.summarizeSessions(state.sessions);
     var rows = summary.groups.map(function (group) {
-      return "<tr><td>" + (group.group === "control" ? "对照组" : "实验组") + "</td><td>" + group.total + "</td><td>" + Math.round(group.completionRate * 100) + "%</td><td>" + Math.round(group.adjustmentRate * 100) + "%</td><td>" + Math.round(group.restartRate * 100) + "%</td><td>" + Math.round(group.shareRate * 100) + "%</td></tr>";
+      return "<tr>" +
+        "<td>" + (group.group === "control" ? "对照组" : "实验组") + "</td>" +
+        "<td>" + group.total + "<br><small>" + escapeHTML(group.sampleStatusLabel) + "</small></td>" +
+        "<td>" + formatInterval(group.intervals.completion) + "</td>" +
+        "<td>" + formatInterval(group.intervals.adjustment) + "</td>" +
+        "<td>" + formatInterval(group.intervals.restart) + "</td>" +
+        "<td>" + formatInterval(group.intervals.share) + "</td>" +
+      "</tr>";
     }).join("");
 
     var treatment = summary.groups[1];
@@ -613,11 +635,20 @@
     views.result.innerHTML =
       "<div class=\"section-head\"><h2>结果回流</h2><p>读取本地会话并计算实验指标</p><span class=\"tag\">Step 5</span></div>" +
       "<div class=\"panel\"><h3 class=\"panel-title\">实验组行为漏斗</h3>" + funnel + "</div>" +
-      "<div class=\"panel\" style=\"margin-top:14px;\"><h3 class=\"panel-title\">指标对比</h3>" +
-        "<table><thead><tr><th>组别</th><th>会话</th><th>完成率</th><th>主动调整率</th><th>重开率</th><th>分享率</th></tr></thead><tbody>" + rows + "</tbody></table>" +
+      "<div class=\"panel\" style=\"margin-top:14px;\"><h3 class=\"panel-title\">指标对比（Wilson 95% CI）</h3>" +
+        "<table><thead><tr><th>组别</th><th>样本</th><th>完成率</th><th>主动调整率</th><th>重开率</th><th>分享率</th></tr></thead><tbody>" + rows + "</tbody></table>" +
       "</div>" +
-      "<div class=\"judgment\" style=\"margin-top:14px;\"><h3>" + escapeHTML(summary.judgment.headline) + "</h3><ul>" + summary.judgment.actions.map(function (action) { return "<li>" + escapeHTML(action) + "</li>"; }).join("") + "</ul>" +
-        "<p>当前共 " + state.sessions.length + " 个会话。小样本结果仅用于流程验证，不可直接作为立项结论。</p>" +
+      "<div class=\"judgment\" style=\"margin-top:14px;\">" +
+        "<h3>" + escapeHTML(summary.judgment.headline) + "</h3>" +
+        "<p><b>样本状态：</b>" + escapeHTML(summary.judgment.sampleStatusLabel) + " · 当前共 " + state.sessions.length + " 个会话</p>" +
+        "<ul>" +
+          summary.judgment.actions.map(function (action) {
+            return "<li>" + escapeHTML(action) + "</li>";
+          }).join("") +
+          comparisonNote("完成率", summary.comparison.completionComparisonAvailable, summary.comparison.completionIntervalsOverlap) +
+          comparisonNote("分享率", summary.comparison.shareComparisonAvailable, summary.comparison.shareIntervalsOverlap) +
+        "</ul>" +
+        "<p>" + escapeHTML(summary.judgment.confidenceNote) + " 小样本结果仅用于流程验证，不可直接作为立项结论。</p>" +
       "</div>" +
       "<div class=\"panel\" style=\"margin-top:14px;\"><h3 class=\"panel-title\">数据管理</h3><div class=\"file-actions\">" +
         "<button class=\"primary small\" id=\"export-json\" type=\"button\">导出实验 JSON</button>" +

@@ -283,6 +283,43 @@
     return session.events.some(function (event) { return event.type === type; });
   }
 
+  function wilsonInterval(successes, total) {
+    if (!total || total < 0 || successes < 0 || successes > total) return null;
+    var z = 1.959963984540054;
+    var proportion = successes / total;
+    var denominator = 1 + (z * z) / total;
+    var center = (proportion + (z * z) / (2 * total)) / denominator;
+    var margin = z * Math.sqrt(
+      (proportion * (1 - proportion)) / total +
+      (z * z) / (4 * total * total)
+    ) / denominator;
+    return {
+      rate: round(proportion, 2),
+      lower: round(Math.max(0, center - margin), 2),
+      upper: round(Math.min(1, center + margin), 2)
+    };
+  }
+
+  function intervalsOverlap(a, b) {
+    return Boolean(a && b && a.lower <= b.upper && b.lower <= a.upper);
+  }
+
+  function sampleStatus(total, target) {
+    if (total <= 0) return "empty";
+    if (total < 5) return "small";
+    if (total < target) return "partial";
+    return "ready";
+  }
+
+  function sampleStatusLabel(status) {
+    return {
+      empty: "未开始",
+      small: "小样本 (<5)",
+      partial: "收集中 (<12)",
+      ready: "达到目标样本"
+    }[status] || "未知";
+  }
+
   function summarizeSessions(sessions) {
     var safeSessions = Array.isArray(sessions) ? sessions : [];
     var groups = ["control", "treatment"].map(function (groupId) {
@@ -302,6 +339,20 @@
         adjustmentRate: total ? round(adjusted / total, 2) : 0,
         restartRate: total ? round(restarted / total, 2) : 0,
         shareRate: total ? round(shared / total, 2) : 0,
+        counts: {
+          completion: completed,
+          adjustment: adjusted,
+          restart: restarted,
+          share: shared
+        },
+        intervals: {
+          completion: wilsonInterval(completed, total),
+          adjustment: wilsonInterval(adjusted, total),
+          restart: wilsonInterval(restarted, total),
+          share: wilsonInterval(shared, total)
+        },
+        sampleStatus: sampleStatus(total, 12),
+        sampleStatusLabel: null,
         funnel: {
           start: total,
           tutorial: list.filter(function (session) { return hasEvent(session, "tutorial_complete"); }).length,
@@ -312,15 +363,28 @@
       };
     });
 
+    groups.forEach(function (group) {
+      group.sampleStatusLabel = sampleStatusLabel(group.sampleStatus);
+    });
+
     var treatment = groups[1];
     var control = groups[0];
+    var minimumTotal = Math.min(control.total, treatment.total);
+    var overallSampleStatus = sampleStatus(minimumTotal, 12);
     var judgment = {
       status: "insufficient",
       headline: "样本不足，暂不能形成机制结论",
-      actions: ["继续收集会话数据", "确保对照组和实验组都有玩家完成流程"]
+      sampleStatus: overallSampleStatus,
+      sampleStatusLabel: sampleStatusLabel(overallSampleStatus),
+      actions: ["继续收集会话数据", "确保对照组和实验组都有玩家完成流程"],
+      confidenceNote: "指标使用 Wilson 95% 置信区间；区间较宽时只能视为观察信号。"
     };
 
-    if (treatment.total >= 5) {
+    if (treatment.total >= 5 && control.total < 5) {
+      judgment.status = "exploratory";
+      judgment.headline = "实验组已有初步样本，但对照组不足";
+      judgment.actions = ["继续补足对照组样本", "暂不做组间强弱结论", "只观察实验组流程可行性"];
+    } else if (treatment.total >= 5 && control.total >= 5) {
       if (
         treatment.completionRate >= 0.5 &&
         treatment.adjustmentRate >= 0.4 &&
@@ -344,7 +408,23 @@
       groups: groups,
       comparison: {
         completionDelta: round(treatment.completionRate - control.completionRate, 2),
-        shareDelta: round(treatment.shareRate - control.shareRate, 2)
+        shareDelta: round(treatment.shareRate - control.shareRate, 2),
+        completionComparisonAvailable: Boolean(
+          control.intervals.completion &&
+          treatment.intervals.completion
+        ),
+        completionIntervalsOverlap: intervalsOverlap(
+          control.intervals.completion,
+          treatment.intervals.completion
+        ),
+        shareComparisonAvailable: Boolean(
+          control.intervals.share &&
+          treatment.intervals.share
+        ),
+        shareIntervalsOverlap: intervalsOverlap(
+          control.intervals.share,
+          treatment.intervals.share
+        )
       },
       judgment: judgment
     };
@@ -363,7 +443,9 @@
         restartRate: treatment.restartRate,
         shareRate: treatment.shareRate
       },
-      boundary: treatment.total < 5 ? "样本少于 5，仅可用于流程演示，不可用于立项判断" : "初步适用于收集 + 自动化动机明显的生存建造切片",
+      boundary: treatment.total < 12
+      ? "样本少于 12，仅可用于流程演示，不可用于立项判断"
+      : "初步适用于收集 + 自动化动机明显的生存建造切片；仍需更大样本和版本迭代验证",
       nextAction: summary.judgment.actions[0] || "继续收集数据"
     };
   }
@@ -408,6 +490,8 @@
 
   var api = {
     MOTIVATIONS: MOTIVATIONS,
+    wilsonInterval: wilsonInterval,
+    intervalsOverlap: intervalsOverlap,
     DEMO_REVIEWS: DEMO_REVIEWS,
     parseReviews: parseReviews,
     analyzeMotivations: analyzeMotivations,

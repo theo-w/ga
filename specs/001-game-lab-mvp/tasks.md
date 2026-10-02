@@ -159,14 +159,14 @@
 
 **Purpose**: Prevent small-sample results from being overinterpreted.
 
-- [ ] T053 Add Wilson 95% confidence interval calculation in `js/engine.js`.
-- [ ] T054 Add sample status labels in `js/engine.js`.
-- [ ] T055 Add control/treatment interval overlap detection in `js/engine.js`.
-- [ ] T056 Render confidence intervals and sample status in `js/app.js`.
-- [ ] T057 Render interval-overlap warnings in `js/app.js`.
-- [ ] T058 Add tests for Wilson interval boundaries in `tests/engine.test.js`.
-- [ ] T059 Add tests for sample status and overlap detection in `tests/engine.test.js`.
-- [ ] T060 Update result view and README boundary language.
+- [x] T053 Add Wilson 95% confidence interval calculation in `js/engine.js`.
+- [x] T054 Add sample status labels in `js/engine.js`.
+- [x] T055 Add control/treatment interval overlap detection in `js/engine.js`.
+- [x] T056 Render confidence intervals and sample status in `js/app.js`.
+- [x] T057 Render interval-overlap warnings in `js/app.js`.
+- [x] T058 Add tests for Wilson interval boundaries in `tests/engine.test.js`.
+- [x] T059 Add tests for sample status and overlap detection in `tests/engine.test.js`.
+- [x] T060 Update result view and README boundary language.
 
 **Checkpoint**: Results are informative but do not claim unsupported certainty.
 
