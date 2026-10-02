@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Game Lab · AI 原生游戏立项实验室 MVP：从玩家口碑到机制假设、可玩原型、实验验证与数据回流。">
+<title>Game Lab · AI 原生游戏立项实验室 MVP</title>
+<link rel="stylesheet" href="css/lab.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark">GL</div>
+    <div>
+      <div class="brand-name">Game Lab</div>
+      <div class="brand-sub">AI 原生游戏立项实验室 · Functional MVP</div>
+    </div>
+  </div>
+  <nav class="tabs" role="tablist" aria-label="Game Lab 主流程">
+    <button type="button" role="tab" data-view="input">输入洞察</button>
+    <button type="button" role="tab" data-view="hypothesis">机制假设</button>
+    <button type="button" role="tab" data-view="experiment">实验设计</button>
+    <button type="button" role="tab" data-view="prototype">机制原型</button>
+    <button type="button" role="tab" data-view="result">结果回流</button>
+    <button type="button" role="tab" data-view="knowledge">机制知识库</button>
+  </nav>
+</header>
+
+<main class="wrap">
+  <section class="hero" aria-label="产品定位">
+    <div class="panel">
+      <h1>不是“一键生成游戏”，<br>而是 <span>可跑通的机制验证闭环</span></h1>
+      <p>
+        输入口碑样本，识别玩家动机与缺口；生成机制假设和实验方案；
+        在浏览器中游玩最小机制原型，采集行为事件，输出实验结论并沉淀机制知识。
+        当前版本为 Local-first 功能型 MVP，不依赖后端。
+      </p>
+      <div class="pill-row">
+        <span class="pill">输入：<b>评论样本</b></span>
+        <span class="pill">输出：<b>机制假设 + 实验结果</b></span>
+        <span class="pill">存储：<b>浏览器 localStorage</b></span>
+      </div>
+    </div>
+    <div class="panel flow-card" aria-label="工作流">
+      <div class="flow-step"><div class="num">1</div><div><div class="t">口碑输入</div><div class="d">演示数据 / JSON / 按行输入</div></div></div>
+      <div class="flow-step"><div class="num">2</div><div><div class="t">动机与缺口识别</div><div class="d">本地规则引擎 + 证据链</div></div></div>
+      <div class="flow-step"><div class="num">3</div><div><div class="t">机制假设与实验</div><div class="d">可测试命题 + 对照组设计</div></div></div>
+      <div class="flow-step"><div class="num">4</div><div><div class="t">可玩原型与回流</div><div class="d">行为事件 + 指标 + 知识沉淀</div></div></div>
+    </div>
+  </section>
+
+  <div class="note">
+    当前版本验证产品主线，数据保存在本地浏览器。行为实验样本通常很小，结果不能直接用于正式立项决策。
+  </div>
+
+  <section class="view active" id="view-input" role="tabpanel"></section>
+  <section class="view" id="view-hypothesis" role="tabpanel"></section>
+  <section class="view" id="view-experiment" role="tabpanel"></section>
+  <section class="view" id="view-prototype" role="tabpanel"></section>
+  <section class="view" id="view-result" role="tabpanel"></section>
+  <section class="view" id="view-knowledge" role="tabpanel"></section>
+
+  <div class="foot">Game Lab · Functional MVP · Local-first · 数据保存在浏览器本地</div>
+</main>
+
+<script src="js/engine.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

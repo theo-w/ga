@@ -1,0 +1,9 @@
+{
+  "name": "game-lab",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "test": "node --test tests/engine.test.js",
+    "check": "node --check js/engine.js && node --check js/app.js && npm test"
+  }
+}
