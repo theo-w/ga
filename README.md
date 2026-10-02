@@ -1,99 +1,80 @@
-# Game Analyzer / Game Lab
+# Game Lab
 
-**当前仓库包含两个互补原型。**
+**Game Lab 是一个 AI 原生游戏立项实验室。**
 
-1. `index.html`
-   - **Game Analyzer**
-   - 面向游戏产品经理、策划、运营与独立开发者。
-   - 目标是把竞品口碑快速转成可解释的诊断、竞品基准与设计建议。
+它不是“一键生成完整游戏”，而是把游戏立项从几个人凭经验讨论，推进为一条可重复的机制验证流水线：
 
-2. `lab.html`
-   - **Game Lab**
-   - AI 原生游戏立项实验室。
-   - 目标不是“一键生成完整游戏”，而是把“口碑洞察 → 机制假设 → 可玩原型 → 实验验证 → 数据回流”做成一条可重复的工程化流水线。
+```text
+玩家口碑
+→ 动机与缺口识别
+→ 机制假设
+→ 最小可玩原型
+→ 对照实验
+→ 行为数据回流
+→ 机制知识沉淀
+```
 
-> `lab.html` 当前是 **Local-first Functional MVP**：可在浏览器中完成口碑输入、机制假设、实验设计、可玩原型、事件采集、结果回流与知识沉淀。
-> 当前仍是规则引擎演示，不是生产系统，也不声称具备真实数据抓取或生产级 AI 能力。
+## 当前主入口
 
-## 当前状态
+- **Game Lab**：[`lab.html`](lab.html)
+- **默认入口**：[`index.html`](index.html) 会自动跳转到 `lab.html`
 
-- Game Analyzer：交互原型，已可用
-- Game Lab Functional MVP：已可用
-- 真实数据接入：未开始
-- 模型能力：本地规则引擎
-- 存储：浏览器 `localStorage`
-- 测试：`npm test`
-
-## 快速开始
+本地运行：
 
 ```bash
-npm test
 npm run check
 python3 -m http.server 8000
 ```
 
 访问：
 
-- Game Analyzer：<http://localhost:8000/index.html>
-- Game Lab：<http://localhost:8000/lab.html>
+- <http://localhost:8000/>
+- <http://localhost:8000/lab.html>
 
-也可以直接用浏览器打开 `index.html` 和 `lab.html`。
+## 当前状态
 
-## Game Lab MVP 使用流程
+- Game Lab Functional MVP：已可用
+- 真实评论数据接入：未开始
+- 模型能力：本地规则引擎
+- 存储：浏览器 `localStorage`
+- 测试：`npm test`
+- 统计判断：Wilson 95% 置信区间、样本状态、区间重叠提示
+
+## 核心流程
 
 1. **输入洞察**
-   - 点击「载入演示数据」，或粘贴自有样本；
-   - 支持 JSON 数组，也支持按行输入：`游戏|情绪|评论`；
-   - 情绪支持 `positive` / `negative` / `neutral`，或 `正面` / `负面` / `中性`。
+   - 载入演示数据，或粘贴 JSON / 按行评论样本；
+   - 识别玩家动机、需求强度、缺口强度和跨竞品证据。
 
 2. **机制假设**
-   - 系统根据动机缺口生成最多 3 个机制假设；
-   - 每个假设包含命题、机制组合、目标玩家、差异点、先例、风险和证据；
-   - 选择一个假设进入实验。
+   - 生成最多 3 个可验证机制假设；
+   - 每个假设包含命题、机制组合、目标玩家、差异点、先例、风险、证据和置信度。
 
 3. **实验设计**
    - 自动生成对照组与实验组；
-   - 指标包括完成率、主动调整率、重开率和分享意愿；
-   - 当前每组目标样本为 12，实际可用于小规模流程验证。
+   - 定义完成率、主动调整率、重开率和分享意愿阈值。
 
 4. **机制原型**
    - 对照组：手动采集资源；
    - 实验组：捕捉生物、分配岗位、形成自动化生产；
-   - 每次操作都会记录为本地行为事件。
+   - 采集行为事件并写入 `localStorage`。
 
 5. **结果回流**
-   - 自动计算两组指标和实验组行为漏斗；
-   - 展示 Wilson 95% 置信区间、样本状态和组间区间重叠提示；
-   - 输出「继续收集 / 探索性观察 / 正向信号 / 完成率受阻 / 信号偏弱」的判断；
-   - 支持导出实验 JSON、导出事件 CSV、导入 JSON 和清空本地数据。
+   - 计算两组指标和行为漏斗；
+   - 展示 Wilson 95% 置信区间、样本状态和区间重叠提示；
+   - 支持实验 JSON 导出、事件 CSV 导出、JSON 导入和清空数据。
 
 6. **机制知识库**
-   - 根据实验结果沉淀机制、动机、效果、边界条件和下一步动作；
+   - 沉淀机制、动机、效果、边界条件和下一步动作；
    - 当前知识由规则生成，未经统计显著性检验。
 
-## 产品主线
+## 产品边界
 
-Game Lab 的核心不是“生成一个游戏”，而是：
-
-```text
-真实口碑
-→ 识别玩家动机与口碑缺口
-→ 生成机制假设
-→ 生成最小可玩原型
-→ 设计对照实验
-→ 采集行为数据
-→ 判断机制是否成立
-→ 产出下一版方向
-→ 沉淀机制知识库
-```
-
-## 边界说明
-
-- 实验数据保存在当前浏览器 `localStorage`；
-- 结果指标展示 Wilson 95% 置信区间，区间重叠时不做组间强弱结论；
-- 本地小样本结果不能直接用于正式立项决策；
+- 数据保存在当前浏览器；
+- 小样本结果不能直接用于正式立项决策；
 - 当前没有真实评论抓取、后端服务、账号系统和大模型调用；
-- 机制知识库当前用于流程演示和结构验证。
+- 机制知识库当前用于流程演示和结构验证；
+- 区间重叠只作为不确定性提示，不等于正式显著性检验。
 
 ## SDD 工程规范
 
@@ -112,7 +93,27 @@ Codex Spec-Kit 技能位于：
 .agents/skills/
 ```
 
-## 历史规格文档
+## Legacy 原型
+
+<details>
+<summary>查看旧的 Game Analyzer 原型</summary>
+
+### Game Analyzer
+
+- 入口：[`legacy/analyzer.html`](legacy/analyzer.html)
+- 定位：游戏竞品口碑分析交互原型
+- 状态：Legacy，仅保留参考
+- 数据：演示样例，不代表真实统计
+
+Game Analyzer 的价值在于提供竞品口碑诊断、玩法拆解、竞品对比和设计建议展示。
+它不再作为当前默认产品入口，后续优先级低于 Game Lab。
+
+</details>
+
+## 历史规格
+
+<details>
+<summary>查看历史规格与架构决策</summary>
 
 - SDD 规格：
   - [docs/specs/0001-game-ideation-lab.md](docs/specs/0001-game-ideation-lab.md)
@@ -120,3 +121,6 @@ Codex Spec-Kit 技能位于：
 - 架构决策：
   - [docs/decisions/0001-separate-lab-prototype.md](docs/decisions/0001-separate-lab-prototype.md)
   - [docs/decisions/0002-local-first-browser-mvp.md](docs/decisions/0002-local-first-browser-mvp.md)
+  - [docs/decisions/0003-prioritize-game-lab-entry.md](docs/decisions/0003-prioritize-game-lab-entry.md)
+
+</details>

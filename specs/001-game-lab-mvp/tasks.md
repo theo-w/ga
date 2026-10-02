@@ -218,5 +218,5 @@
 
 ## Notes
 
-- `index.html` remains the Game Analyzer prototype and is not part of this feature's implementation scope.
+- `index.html` now redirects to `lab.html`; the original Game Analyzer prototype is preserved at `legacy/analyzer.html` as a Legacy reference per ADR 0003.
 - Current statistical enhancement is partially implemented in the working tree and must be completed before marking Phase 8 complete.

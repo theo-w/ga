@@ -57,13 +57,15 @@ tests/
 package.json
 ```
 
-### Legacy / Companion Prototype
+### Legacy Prototype / Default Entry
 
 ```text
 index.html
+legacy/analyzer.html
 ```
 
-`index.html` 是 Game Analyzer 原型，保持独立，不承载 Game Lab 实验流程。
+`index.html` 是默认入口，自动重定向到 `lab.html`。
+原 Game Analyzer 交互原型保留在 `legacy/analyzer.html`，仅作为 Legacy 参考，不承载 Game Lab 实验流程。入口调整依据见 [ADR 0003](../../docs/decisions/0003-prioritize-game-lab-entry.md)。
 
 ## Design Decisions
 

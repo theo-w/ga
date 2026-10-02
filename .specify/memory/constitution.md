@@ -1,4 +1,4 @@
-# Game Analyzer / Game Lab Constitution
+# Game Lab Constitution
 
 ## Core Principles
 
@@ -51,10 +51,11 @@ AI 可以生成机制假设、原型方案和实验建议，但进入制作、�
 
 ## Product Boundary
 
-### Game Analyzer
+### Legacy: Game Analyzer
 
-定位：游戏竞品口碑分析工具。
-核心任务：帮助产品经理、策划、运营理解竞品口碑结构与机会。
+定位：Legacy 竞品口碑分析原型。
+核心任务：保留历史参考价值，帮助理解竞品口碑诊断、玩法拆解、竞品对比和设计建议展示。
+状态：不作为当前默认入口，后续优先级低于 Game Lab。
 
 ### Game Lab
 
