@@ -346,6 +346,12 @@
   .stat[data-go] { cursor: pointer; transition: border-color .15s; }
   .stat[data-go]:hover { border-color: var(--accent); }
   .stat[data-go]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  @keyframes statFocus {
+    0% { box-shadow: 0 0 0 0 rgba(139, 200, 234, .5); border-color: var(--accent); }
+    70% { box-shadow: 0 0 0 10px rgba(139, 200, 234, 0); border-color: var(--accent); }
+    100% { box-shadow: 0 0 0 0 rgba(139, 200, 234, 0); }
+  }
+  .stat-focus { animation: statFocus 1.2s ease-out 2; }
 
   .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; margin-bottom: 14px; }
   .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; min-width: 0; }
@@ -618,10 +624,10 @@
     </div>
 
     <div class="stat-row">
-      <div class="stat"><div class="k">采样后评论</div><div class="v" id="stKept">—</div><div class="d flat" id="stKeptD">进入分析</div></div>
-      <div class="stat" data-go="pipeline" role="button" tabindex="0"><div class="k">过滤噪音</div><div class="v" id="stNoise">—</div><div class="d flat">meme / 短评 / 水军</div></div>
-      <div class="stat" data-go="pipeline" role="button" tabindex="0"><div class="k">差评轰炸事件</div><div class="v" id="stBomb">—</div><div class="d flat" id="stBombD">事件性波动</div></div>
-      <div class="stat"><div class="k">设计知识沉淀</div><div class="v" id="stKb">—</div><div class="d flat">机制 ↔ 口碑条目</div></div>
+      <div class="stat" data-go="pipeline" data-anchor="panelFunnel" role="button" tabindex="0" aria-label="查看采样漏斗"><div class="k">采样后评论</div><div class="v" id="stKept">—</div><div class="d flat" id="stKeptD">进入分析</div></div>
+      <div class="stat" data-go="pipeline" data-anchor="panelNoise" role="button" tabindex="0" aria-label="查看噪音构成"><div class="k">过滤噪音</div><div class="v" id="stNoise">—</div><div class="d flat">meme / 短评 / 水军</div></div>
+      <div class="stat" data-go="pipeline" data-anchor="panelBomb" role="button" tabindex="0" aria-label="查看差评轰炸事件"><div class="k">差评轰炸事件</div><div class="v" id="stBomb">—</div><div class="d flat" id="stBombD">事件性波动</div></div>
+      <div class="stat" data-go="suggest" data-anchor="panelSuggest" role="button" tabindex="0" aria-label="查看 AI 设计建议"><div class="k">设计知识沉淀</div><div class="v" id="stKb">—</div><div class="d flat">机制 ↔ 口碑条目</div></div>
     </div>
   </section>
 
@@ -682,21 +688,21 @@
     <div class="back-row"><a href="#overview" class="back-link" data-back>← 返回诊断报告</a></div>
     <div class="demo-note">阶段一 · 数据管道可视化：展示原始采集 → 智能采样 → 噪音过滤 → 打标聚合的全流程。数值为演示样例。</div>
     <div class="grid-2">
-      <div class="panel">
+      <div class="panel" id="panelFunnel">
         <h4>采样过滤漏斗<span class="hint">bronze → silver</span></h4>
         <div id="chartFunnel" class="chart" style="min-height:300px;"></div>
       </div>
-      <div class="panel">
+      <div class="panel" id="panelNoise">
         <h4>噪音构成<span class="hint">5 类噪音规则过滤明细</span></h4>
         <div id="noiseBars" class="chart" style="min-height:300px;"></div>
       </div>
     </div>
     <div class="grid-2" style="margin-top:0;">
-      <div class="panel">
+      <div class="panel" id="panelBomb">
         <h4>近 14 天负面评论量<span class="hint">差评轰炸事件识别</span></h4>
         <div id="chartBomb" class="chart" style="min-height:300px;"></div>
       </div>
-      <div class="panel">
+      <div class="panel" id="panelBombEvents">
         <h4>轰炸事件记录<span class="hint">事件性波动 · 未并入常态</span></h4>
         <div id="bombEvents"></div>
         <div class="loop-box" style="margin-top:12px;">
@@ -711,7 +717,7 @@
   <section class="view" id="view-suggest">
     <div class="back-row"><a href="#overview" class="back-link" data-back>← 返回诊断报告</a></div>
     <div class="demo-note">阶段二 · AI 设计建议（框架预览）：由 ⑦ 设计知识库 + 竞品缺口分析产出，建议置信度为演示值。</div>
-    <div class="panel" style="margin-bottom:14px;">
+    <div class="panel" id="panelSuggest" style="margin-bottom:14px;">
       <h4>生成逻辑<span class="hint">知识库 → 缺口 → 建议</span></h4>
       <div class="seg-list" id="suggestFlow" style="gap:8px;margin-top:2px;"></div>
     </div>
@@ -1161,12 +1167,21 @@
     switchView("bench");
   });
 
-  /* ===== 首页统计卡 → 数据管道 ===== */
+  /* ===== 首页统计卡 → 精确区块（数据管道 / AI 建议） ===== */
   document.querySelectorAll(".stat[data-go]").forEach(function(s){
     s.addEventListener("click", function(){
       var go = s.getAttribute("data-go");
+      var anchor = s.getAttribute("data-anchor");
       if (location.hash !== "#" + go) { try { history.replaceState(null, "", "#" + go); } catch(err){} }
       switchView(go);
+      var target = anchor ? document.getElementById(anchor) : null;
+      if (target) {
+        setTimeout(function(){
+          target.scrollIntoView({ behavior: "smooth", block: "start" });
+          target.classList.add("stat-focus");
+          setTimeout(function(){ target.classList.remove("stat-focus"); }, 1800);
+        }, 120);
+      }
     });
     s.addEventListener("keydown", function(e){
       if (e.key === "Enter" || e.key === " ") { e.preventDefault(); s.click(); }
