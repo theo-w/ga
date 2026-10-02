@@ -617,7 +617,7 @@
           <div id="chartSentiment" class="chart" style="min-height:300px;"></div>
         </div>
         <div class="panel">
-          <h4>12 类玩法维度口碑<span class="hint">机器打标明细</span></h4>
+          <h4>12 类口碑维度<span class="hint">机器打标明细</span></h4>
           <div class="sentiment-bars" id="sentimentBars"></div>
         </div>
       </div>
@@ -716,7 +716,7 @@
   <!-- ===== 视图：AI 设计建议（阶段二） ===== -->
   <section class="view" id="view-suggest">
     <div class="back-row"><a href="#overview" class="back-link" data-back>← 返回诊断报告</a></div>
-    <div class="demo-note">阶段二 · AI 设计建议（规则引擎真例子）：由本游戏 7 段拆解 + 12 类情感 + 口碑证据实时推导，置信度按短板差距 / 证据量计算，非写死值。</div>
+    <div class="demo-note">阶段二 · AI 设计建议（规则引擎真例子）：由本游戏 7 段拆解 + 12 类口碑维度 + 口碑证据实时推导，置信度按短板差距 / 证据量计算，非写死值。</div>
     <div class="panel" id="panelSuggest" style="margin-bottom:14px;">
       <h4>生成逻辑<span class="hint">知识库 → 缺口 → 建议</span></h4>
       <div class="seg-list" id="suggestFlow" style="gap:8px;margin-top:2px;"></div>
@@ -1278,7 +1278,7 @@
     }, true);
   }
 
-  /* ===== 12 类情感条 ===== */
+  /* ===== 12 类口碑维度条 ===== */
   function renderCats(){
     var wrap = $("sentimentBars");
     wrap.innerHTML = "";
@@ -1327,7 +1327,7 @@
     current.segs.forEach(function(s){
       var d = document.createElement("div");
       d.className = "seg";
-      d.innerHTML = '<div class="l">' + s[0] + '<small>情感维度：' + s[3] + '</small></div><div class="r">' + s[1] + '</div>';
+      d.innerHTML = '<div class="l">' + s[0] + '<small>口碑维度：' + s[3] + '</small></div><div class="r">' + s[1] + '</div>';
       wrap.appendChild(d);
     });
   }
@@ -1657,8 +1657,8 @@
     var wrap = $("suggestFlow");
     wrap.innerHTML = "";
     var steps = [
-      ["输入", "7 段拆解 + 12 类情感（本游戏）"],
-      ["短板识别", "取最弱 2-3 段，映射到 12 类维度"],
+      ["输入", "7 段拆解 + 12 类口碑维度（本游戏）"],
+      ["短板识别", "取最弱 2-3 段，映射到 12 类口碑维度"],
       ["知识库检索", "⑦ design_knowledge 命中机制先例"],
       ["产出建议", "方向 + 机制 + 借鉴 + 置信度（数据推导）"]
     ];
