@@ -93,7 +93,24 @@ Game Lab 的核心不是“生成一个游戏”，而是：
 - 当前没有真实评论抓取、后端服务、账号系统和大模型调用；
 - 机制知识库当前用于流程演示和结构验证。
 
-## 文档
+## SDD 工程规范
+
+本仓库已安装并初始化 GitHub Spec Kit：
+
+- 项目原则：[.specify/memory/constitution.md](.specify/memory/constitution.md)
+- 当前功能规格：[specs/001-game-lab-mvp/spec.md](specs/001-game-lab-mvp/spec.md)
+- 实施计划：[specs/001-game-lab-mvp/plan.md](specs/001-game-lab-mvp/plan.md)
+- 数据模型：[specs/001-game-lab-mvp/data-model.md](specs/001-game-lab-mvp/data-model.md)
+- 快速验证：[specs/001-game-lab-mvp/quickstart.md](specs/001-game-lab-mvp/quickstart.md)
+- 任务清单：[specs/001-game-lab-mvp/tasks.md](specs/001-game-lab-mvp/tasks.md)
+
+Codex Spec-Kit 技能位于：
+
+```text
+.agents/skills/
+```
+
+## 历史规格文档
 
 - SDD 规格：
   - [docs/specs/0001-game-ideation-lab.md](docs/specs/0001-game-ideation-lab.md)
