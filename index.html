@@ -736,7 +736,7 @@
   <!-- ===== 视图：生成验证（阶段三） ===== -->
   <section class="view" id="view-generate">
     <div class="back-row"><a href="#overview" class="back-link" data-back>← 返回诊断报告</a></div>
-    <div class="demo-note">阶段三 · 生成验证闭环（框架预览）：知识库输入 → AI 生成候选 → 试玩验证 → 玩家数据回流。候选与验证数据为演示值。</div>
+    <div class="demo-note">阶段三 · 生成验证闭环（规则引擎真例子）：候选由 AI 设计建议实时驱动，差异化点 = 建议机制 + 借鉴先例 + 口碑依据。</div>
     <div class="grid-2">
       <div class="panel">
         <h4>生成候选<span class="hint">由建议组合 + 知识库机制拼接</span></h4>
@@ -804,10 +804,7 @@
         { target:"剧情与沉浸（76）", direction:"叙事补强：NPC 好感线深度化", mechanism:"好感事件由一次性触发改为多结局分支，增加情感留存", borrow:"参考《牧场物语》重制版的婚恋线", confidence:75, evidence:"sv002" },
         { target:"探索与内容量（81）", direction:"长线内容：末期玩法扩展", mechanism:"新增「山谷挑战赛季」，用排行榜维持末期新鲜感", borrow:"参考《波西亚时光》的工坊订单系统", confidence:68, evidence:"sv005" }
       ],
-      generation: [
-        { title:"《山谷工坊物语》", genre:"模拟经营 · 建造", core:"星露谷式种田循环 × 订单驱动的工坊建造 × 赛季限时目标", audience:"喜欢经营养成、接受轻量挑战的 25-40 岁玩家", diff:["买断无内购（继承 sv003 口碑）","赛季制长线（回应 sv005 重复感）","弱竞技强协作（回应 sv004 缺口）"], mech_tags:["成长与养成","更新与运营"], playability:72, status:"生成候选 · 待试玩验证" },
-        { title:"《星旅农场》", genre:"模拟经营 · 叙事", core:"农场经营 × 太空探索叙事 × 多结局 NPC 好感", audience:"剧情向 + 经营双偏好的玩家", diff:["叙事分支（回应 sv002 沉浸感）","探索奖励密度提升"], mech_tags:["剧情与叙事","探索与世界观"], playability:64, status:"生成候选 · 待试玩验证" }
-      ],
+      generation: [],
       bench: { names: ["星露谷物语", "波西亚时光", "哆啦A梦牧场物语"], scores: [92, 78, 74], posRates: [82, 71, 66] },
       benchRows: [
         ["星露谷物语", "92", "82%", "成长与养成", "后期新鲜感"],
@@ -859,10 +856,7 @@
         { target:"社交与竞技（55）", direction:"社区化：速通/挑战官方化", mechanism:"内置「钢魂挑战」周榜与回放分享，把外部速通文化引入产品", borrow:"参考《死亡细胞》的每日挑战模式", confidence:80, evidence:"hk001" },
         { target:"难度与平衡（72）", direction:"难度分层：苦痛模式可调节", mechanism:"新增「难度滑杆」，保留硬核体验同时开放轻量档位", borrow:"参考《死亡细胞》BSC 难度分级", confidence:74, evidence:"hk004" }
       ],
-      generation: [
-        { title:"《深窟回响》", genre:"类银河恶魔城 · 动作", core:"空洞骑士式 boss 战 × 引导护符系统 × 官方速通周榜", audience:"喜欢硬核动作、追求挑战成就的 18-35 岁玩家", diff:["难度滑杆（回应 hk004 门槛）","周榜挑战（回应 hk001 成就感 + 社交缺口）"], mech_tags:["战斗与操作","社交与多人"], playability:81, status:"生成候选 · 待试玩验证" },
-        { title:"《微光行者》", genre:"类银河恶魔城 · 叙事", core:"探索 × 碎片叙事 × 多结局 boss 命运线", audience:"剧情向动作玩家", diff:["叙事密度提升（继承 hk002 口碑）","引导优化"], mech_tags:["剧情与叙事","探索与世界观"], playability:76, status:"生成候选 · 待试玩验证" }
-      ],
+      generation: [],
       bench: { names: ["空洞骑士", "奥日与黑暗森林", "死亡细胞"], scores: [95, 89, 86], posRates: [88, 84, 81] },
       benchRows: [
         ["空洞骑士", "95", "88%", "战斗与操作", "新手引导"],
@@ -914,10 +908,7 @@
         { target:"剧情与沉浸（45）", direction:"叙事补强：世界观主线化", mechanism:"新增「帕鲁生态研究」主线任务链，把收集行为变成叙事驱动", borrow:"参考《宝可梦传说：阿尔宙斯》的图鉴叙事", confidence:76, evidence:"pw003" },
         { target:"商业化（60）", direction:"口碑修复：定价与福利政策透明", mechanism:"发布「版本承诺书」，明确 EA 阶段涨价规则与补偿方案", borrow:"参考《戴森球计划》EA 定价透明化先例", confidence:83, evidence:"pw005 · pw006" }
       ],
-      generation: [
-        { title:"《帕鲁：生态起源》", genre:"开放世界 · 生存建造", core:"帕鲁式捕捉养成 × 图鉴主线叙事 × 优化重构引擎", audience:"喜欢收集养成、在意沉浸感的玩家", diff:["叙事驱动（回应 pw003 空虚感）","性能优化承诺（回应 pw004）","商业化透明（回应 pw005/006）"], mech_tags:["成长与养成","剧情与叙事"], playability:58, status:"生成候选 · 待试玩验证" },
-        { title:"《荒野工坊》", genre:"开放世界 · 建造", core:"生存建造 × 自动化流水线 × 赛季运营活动", audience:"建造 + 自动化爱好者", diff:["自动化深度（继承 pw001 口碑）","运营活动节奏化"], mech_tags:["成长与养成","更新与运营"], playability:66, status:"生成候选 · 待试玩验证" }
-      ],
+      generation: [],
       bench: { names: ["幻兽帕鲁", "宝可梦传说：阿尔宙斯", "方舟：生存进化"], scores: [78, 84, 75], posRates: [61, 79, 58] },
       benchRows: [
         ["幻兽帕鲁", "78", "61%", "成长与养成", "性能优化"],
@@ -1047,15 +1038,7 @@
       bombIdx: [], bombEvents: [],
       noiseBreakdown: [["meme / 短评", Math.round(noise * .45)], ["疑似水军", Math.round(noise * .35)], ["无关归档", Math.round(noise * .2)]],
       suggests: [],
-      generation: base.generation.map(function(gd, i){
-        var short = name.length > 4 ? name.slice(0, 4) : name;
-        return {
-          title: "《" + short + "·" + (i === 0 ? "工坊篇" : "纪元篇") + "》",
-          genre: gd.genre, core: gd.core, audience: gd.audience,
-          diff: gd.diff.slice(), mech_tags: gd.mech_tags.slice(),
-          playability: Math.max(55, gd.playability + rnd(-6, 6)), status: "生成候选 · 待试玩验证"
-        };
-      }),
+      generation: [],
       bench: { names: [name, "星露谷物语", "波西亚时光"], scores: [score, 92, 78], posRates: [pos, 82, 71] },
       benchRows: [
         [name, String(score), pos + "%", "核心玩法与循环", "社交与竞技"],
@@ -1715,18 +1698,48 @@
     });
   }
 
-  /* ===== 阶段三：生成验证闭环 ===== */
+  /* ===== 阶段三：生成验证闭环 =====
+     规则引擎：候选由 AI 设计建议实时驱动（建议机制 → 候选差异化点），不读写死值 */
+  function buildGenerations(){
+    var sug = buildSuggestions();
+    if (!sug || !sug.length) return [];
+    var short = current.name.length > 4 ? current.name.slice(0, 4) : current.name;
+    var genreBase = current.genre || "游戏";
+    var gens = [];
+    sug.forEach(function(s, i){
+      var catShort = s.cat && s.cat.length > 6 ? s.cat.slice(0, 6) : s.cat;
+      var title = "《" + short + "·" + catShort + (i === 0 ? "篇" : "版") + "》";
+      var play = Math.min(95, Math.round(60 + s.confidence * 0.35));
+      gens.push({
+        title: title,
+        genre: genreBase + " · " + s.cat,
+        core: "核心循环 = 原品类核心 + 「" + s.cat + "」补强机制",
+        audience: "既有核心玩家 + 被「" + s.cat + "」吸引的潜在人群",
+        diff: [
+          "回应短板「" + s.target + "」：" + s.mechanism,
+          "借鉴先例：" + s.borrow,
+          "口碑依据：" + (s.evidence.indexOf("暂无") === -1 ? s.evidence : "结构性预判，待试玩验证")
+        ],
+        mech_tags: [s.cat, "更新与运营"],
+        playability: play,
+        status: "生成候选 · 由 AI 建议实时驱动",
+        from: s.target
+      });
+    });
+    return gens;
+  }
   function renderGenerate(){
     var list = $("genList");
     list.innerHTML = "";
-    current.generation.forEach(function(g){
+    var gens = buildGenerations();
+    gens.forEach(function(g){
       var d = document.createElement("div");
       d.className = "gen-card";
       var diffs = g.diff.map(function(x){ return "· " + x; }).join("<br>");
       var tags = g.mech_tags.map(function(t){ return '<span class="g-tag">' + t + '</span>'; }).join("");
       d.innerHTML = '<div class="g-head"><span class="g-title">' + g.title + '</span><span class="g-status">' + g.status + '</span></div>' +
         '<div class="g-genre">' + g.genre + ' · 机制标签：' + g.mech_tags.join(" / ") + '</div>' +
-        '<div class="g-core">核心循环：' + g.core + '</div>' +
+        '<div class="g-core">' + g.core + '</div>' +
         '<div class="g-aud">目标人群：' + g.audience + '</div>' +
         '<div class="g-diff">差异化点：<br>' + diffs + '</div>' +
         '<div class="g-play">可玩性预评分 <b>' + g.playability + '</b> / 100（待试玩验证）</div>';
@@ -1735,7 +1748,7 @@
     var loop = $("genLoop");
     loop.innerHTML = "";
     var boxes = [
-      ["AI 生成", "基于知识库机制组合产出 2 个候选，本页即生成层"],
+      ["AI 生成", "由 AI 设计建议实时驱动，产出 " + gens.length + " 个候选（本页即生成层）"],
       ["试玩验证", "招募目标人群试玩，采集行为数据；闸门：可玩性通过率 ≥ 50%"],
       ["数据回流", "上线玩家行为 → 采集层（bronze），知识库（⑦）持续更新"],
       ["人掌舵", "策划审阅候选与回流数据，决定进入制作或回炉"]
