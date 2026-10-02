@@ -119,7 +119,7 @@
   a { color: inherit; text-decoration: none; }
   button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
 
-  /* ===== 顶栏 ===== */
+  /* ===== 顶栏：功能导航 ===== */
   .topbar {
     display: flex; align-items: center; gap: 16px;
     padding: 12px 20px;
@@ -159,7 +159,22 @@
   .nav a:hover { color: var(--text); background: var(--hover-bg); }
   .nav a.active { color: var(--accent); background: var(--accent-soft); font-weight: 500; }
 
-  .game-switch { flex: 0 0 auto; display: flex; gap: 6px; }
+  /* ===== 对象栏：当前分析的游戏 ===== */
+  .objbar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 20px;
+    border-bottom: 1px solid var(--line);
+    background: var(--panel-2);
+    position: sticky; top: 61px; z-index: 49;
+    backdrop-filter: blur(6px);
+  }
+  .objbar .obj-label {
+    flex: 0 0 auto; font-size: 11px; color: var(--text-2);
+    padding: 4px 10px; border-radius: 999px;
+    background: var(--hover-bg); letter-spacing: .04em;
+  }
+  .game-switch { flex: 0 0 auto; display: flex; gap: 6px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+  .game-switch::-webkit-scrollbar { display: none; }
   .game-btn {
     padding: 8px 12px; border-radius: 9px; font-size: 12.5px; color: var(--text-2);
     border: 1px solid var(--line); background: var(--panel);
@@ -460,9 +475,11 @@
     .topbar { flex-wrap: wrap; padding: 10px 12px; }
     .nav { order: 3; width: 100%; overflow-x: auto; justify-content: flex-start; }
     .nav a { padding: 8px 12px; font-size: 12.5px; }
-    .game-switch { width: 100%; overflow-x: auto; }
-    .game-btn { flex: 0 0 auto; }
     .theme-switch { order: 2; margin-left: auto; }
+    .objbar { padding: 8px 12px; top: 58px; }
+    .obj-label { flex: 0 0 auto; }
+    .game-switch { flex: 1 1 auto; }
+    .game-btn { flex: 0 0 auto; }
     .wrap { padding: 14px 12px 36px; }
     .sbar { grid-template-columns: 90px 1fr 36px; }
     .seg { grid-template-columns: 1fr; gap: 4px; }
@@ -490,14 +507,18 @@
     <a href="#suggest">AI 设计建议</a>
     <a href="#generate">生成验证</a>
   </nav>
-  <div class="game-switch" id="gameSwitch"></div>
-  <button class="game-btn add" id="addGameBtn" type="button">＋ 添加游戏</button>
   <div class="theme-switch" id="themeSwitch" role="group" aria-label="界面主题">
     <button type="button" class="theme-btn active" data-theme="classic" title="经典">经典</button>
     <button type="button" class="theme-btn" data-theme="editorial" title="设计感">设计感</button>
     <button type="button" class="theme-btn" data-theme="future" title="未来感">未来感</button>
   </div>
 </header>
+
+<div class="objbar">
+  <span class="obj-label">当前分析</span>
+  <div class="game-switch" id="gameSwitch"></div>
+  <button class="game-btn add" id="addGameBtn" type="button">＋ 添加游戏</button>
+</div>
 
   <!-- ===== 添加游戏向导弹层 ===== -->
   <div class="add-mask" id="addMask" style="display:none;">
