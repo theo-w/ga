@@ -511,7 +511,6 @@
     <a href="#segments">玩法拆解</a>
     <a href="#bench">竞品对比</a>
     <a href="#suggest">AI 设计建议</a>
-    <a href="#generate">生成验证</a>
   </nav>
   <div class="theme-switch" id="themeSwitch" role="group" aria-label="界面主题">
     <button type="button" class="theme-btn active" data-theme="classic" title="经典">经典</button>
@@ -731,10 +730,11 @@
         <div id="kbHits"></div>
       </div>
     </div>
+    <div class="demo-note" style="margin-top:14px;border-style:dashed;">后期方向 · AI 生成验证：候选由建议实时驱动 → 试玩验证 → 数据回流（闭环已内部预演，MVP 阶段暂不开放入口）</div>
   </section>
 
   <!-- ===== 视图：生成验证（阶段三） ===== -->
-  <section class="view" id="view-generate">
+  <section class="view" id="view-generate" style="display:none;">
     <div class="back-row"><a href="#overview" class="back-link" data-back>← 返回诊断报告</a></div>
     <div class="demo-note">阶段三 · 生成验证闭环（规则引擎真例子）：候选由 AI 设计建议实时驱动，差异化点 = 建议机制 + 借鉴先例 + 口碑依据。</div>
     <div class="grid-2">
@@ -1170,7 +1170,7 @@
   });
 
   /* ===== 视图切换 ===== */
-  var navMap = { overview:"view-overview", segments:"view-segments", evidence:"view-evidence", bench:"view-bench", pipeline:"view-pipeline", suggest:"view-suggest", generate:"view-generate" };
+  var navMap = { overview:"view-overview", segments:"view-segments", evidence:"view-evidence", bench:"view-bench", pipeline:"view-pipeline", suggest:"view-suggest" };
   function switchView(key){
     if (!navMap[key]) key = "overview";
     Object.keys(navMap).forEach(function(k){
@@ -1794,8 +1794,30 @@
       var el = document.getElementById(id);
       if (ro && el) ro.observe(el);
     });
+    var intro = $("introMask");
+    if (intro && !sessionStorage.getItem("ga_intro_seen")) {
+      intro.style.display = "flex";
+      sessionStorage.setItem("ga_intro_seen", "1");
+      var close = $("introClose");
+      if (close) close.addEventListener("click", function(){ intro.style.display = "none"; });
+    }
   });
 })();
 </script>
+  <!-- ===== 产品说明（首次打开弹出） ===== -->
+  <div class="add-mask" id="introMask" style="display:none;">
+    <div class="add-dialog" role="dialog" aria-modal="true" aria-label="产品说明" style="max-width:660px;">
+      <h5>Game Analyzer · 产品说明</h5>
+      <div class="add-sub"><b>游戏竞品口碑分析 MVP</b>——输入一款游戏，输出诊断报告 / 玩法拆解 / 竞品对比 / AI 设计建议。</div>
+      <h5>目标用户</h5>
+      <div class="add-sub">游戏产品经理、运营、策划；独立开发者。</div>
+      <h5>3 步上手</h5>
+      <div class="add-sub">① 「＋添加游戏」输入名称与链接（模拟抓取）<br/>② 看「诊断报告」：顶部一句话诊断 + 三张结论卡 + 四类明细<br/>③ 看「AI 设计建议」：最弱短板 → 机制建议 → 置信度与证据</div>
+      <h5>当前能做什么 / 不能做什么</h5>
+      <div class="add-sub"><b>能</b>：快速看口碑结构、短板定位、竞品基准、机制建议与置信度。<br/><b>暂不能</b>：真实数据采集与分析（现为演示数据）；付费级分析精度；AI 生成验证（后期方向，闭环已内部预演）。</div>
+      <div class="add-sub" style="margin-bottom:14px;">说明：所有数据为模拟演示值，用于展示完整分析框架，不代表真实口碑结论。</div>
+      <button class="game-btn add" id="introClose" type="button">开始使用</button>
+    </div>
+  </div>
 </body>
 </html>
