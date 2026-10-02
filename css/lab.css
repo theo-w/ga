@@ -246,6 +246,8 @@ tr:last-child td { border-bottom: 0; }
 
 .file-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
 .foot { text-align: center; color: var(--muted); font-size: 11px; margin-top: 28px; }
+.foot a { color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
+.foot a:hover { color: var(--accent); }
 .hidden { display: none !important; }
 
 @media (max-width: 900px) {
