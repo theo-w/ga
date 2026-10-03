@@ -166,6 +166,39 @@
     "</div>";
   }
 
+  function renderStageGuide(title, points) {
+    return "<div class=\"stage-guide\"><b>" + escapeHTML(title) + "</b><ul>" +
+      points.map(function (point) { return "<li>" + escapeHTML(point) + "</li>"; }).join("") +
+    "</ul></div>";
+  }
+
+  function renderWorkflowGuide() {
+    return "<div class=\"guide-card\" aria-label=\"最小使用路径\">" +
+      "<div class=\"guide-head\"><h3>最小使用路径</h3><p>目标不是生成完整游戏，而是验证一个机制是否值得继续投入。</p></div>" +
+      "<div class=\"guide-grid\">" +
+        "<div class=\"guide-step\"><span>1</span><div><b>明确业务问题</b><p>我要验证哪个机制，服务哪类玩家的哪个未满足动机？</p></div></div>" +
+        "<div class=\"guide-step\"><span>2</span><div><b>准备可比样本</b><p>选择 3-6 个相近竞品，导入本地评论 JSON；快速体验可用演示数据。</p></div></div>" +
+        "<div class=\"guide-step\"><span>3</span><div><b>先看动机证据</b><p>分析后停留在本页，检查提及、未满足、缺口和跨竞品，再进入假设。</p></div></div>" +
+        "<div class=\"guide-step\"><span>4</span><div><b>选择机制假设</b><p>优先选择证据强、跨产品、可切成最小原型的机制，而不是直接立项。</p></div></div>" +
+        "<div class=\"guide-step\"><span>5</span><div><b>体验对照原型</b><p>分别跑对照组和实验组；一次体验只能验证流程，不能证明机制成立。</p></div></div>" +
+        "<div class=\"guide-step\"><span>6</span><div><b>决策并导出证据</b><p>查看样本与置信区间，导出 JSON / CSV，决定继续、调整或放弃。</p></div></div>" +
+      "</div>" +
+    "</div>";
+  }
+
+  function renderMetricGuide() {
+    return "<div class=\"metric-guide\" aria-label=\"动机指标解读\">" +
+      "<b>指标解读</b>" +
+      "<ul>" +
+        "<li><b>相对提及强度</b>：该动机提及数 / 当前样本中最热动机的提及数。它用于排序，不代表占总评论数的比例。</li>" +
+        "<li><b>未满足</b>：谈论该动机的评论中，负面或“希望、想要、缺少”类表达的比例。</li>" +
+        "<li><b>缺口</b>：综合“提及热度”和“未满足”的探索性信号；不是显著性检验。</li>" +
+        "<li><b>跨竞品</b>：该动机证据来自几个游戏。跨更多竞品的缺口，更可能指向品类机会。</li>" +
+        "<li>一条评论可以同时命中多个动机，所以各动机提及数相加可能超过评论总数。</li>" +
+      "</ul>" +
+    "</div>";
+  }
+
   function renderInput() {
     var statsHTML = "";
     if (state.stats.length) {
@@ -198,6 +231,7 @@
 
     views.input.innerHTML =
       "<div class=\"section-head\"><h2>输入洞察</h2><p>支持真实评论 JSON、演示数据、JSON 数组或「游戏|情绪|评论」按行输入</p><span class=\"tag\">Step 1</span></div>" +
+      renderWorkflowGuide() +
       "<div class=\"grid cols-2\">" +
         "<div class=\"panel\"><h3 class=\"panel-title\">口碑样本</h3>" +
           "<div id=\"dataset-card\">" + datasetHTML + "</div>" +
@@ -213,7 +247,10 @@
           "<div id=\"input-error\"></div>" +
           "<div class=\"note\">情绪支持：positive / negative / neutral，或：正面 / 负面 / 中性。真实评论导入仅在本地完成，不会上传文件。</div>" +
         "</div>" +
-        "<div class=\"panel\"><h3 class=\"panel-title\">动机与缺口</h3><div id=\"motivation-stats\">" + statsHTML + "</div></div>" +
+        "<div class=\"panel\" id=\"motivation-panel\"><h3 class=\"panel-title\">动机与缺口</h3><div id=\"motivation-stats\">" + statsHTML + "</div>" +
+          (state.hypotheses.length ? "<div class=\"guide-actions\"><button class=\"primary small\" id=\"go-hypotheses\" type=\"button\">进入机制假设</button><span>建议先检查证据和指标解释，再进入下一步。</span></div>" : "") +
+          renderMetricGuide() +
+        "</div>" +
       "</div>";
 
     var textarea = document.getElementById("review-input");
@@ -287,11 +324,22 @@
         state.experiment = state.hypotheses.length ? window.GameLabEngine.buildExperiment(state.hypotheses[0]) : null;
         persist();
         renderAll();
-        showView("hypothesis");
+        showView("input");
+        var motivationPanel = document.getElementById("motivation-panel");
+        if (motivationPanel && motivationPanel.scrollIntoView) {
+          motivationPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
       } catch (error) {
         errorBox.innerHTML = "<div class=\"error\">" + escapeHTML(error.message) + "</div>";
       }
     });
+
+    var goHypotheses = document.getElementById("go-hypotheses");
+    if (goHypotheses) {
+      goHypotheses.addEventListener("click", function () {
+        showView("hypothesis");
+      });
+    }
   }
 
   function importRealReviews(event) {
@@ -362,7 +410,12 @@
     }
 
     views.hypothesis.innerHTML =
-      "<div class=\"section-head\"><h2>机制假设</h2><p>从动机缺口生成可验证的设计命题</p><span class=\"tag\">Step 2</span></div>" + content;
+      "<div class=\"section-head\"><h2>机制假设</h2><p>从动机缺口生成可验证的设计命题</p><span class=\"tag\">Step 2</span></div>" +
+      renderStageGuide("如何选择假设？", [
+        "先回到动机证据：这个假设对应哪个高缺口、跨竞品的动机？",
+        "再判断机制是否可切片：能否用一个最小原型验证核心差异？",
+        "最后由人做决策：系统生成候选，不自动立项。"
+      ]) + content;
 
     views.hypothesis.querySelectorAll("[data-hypothesis]").forEach(function (button) {
       button.addEventListener("click", function () {
@@ -378,7 +431,12 @@
   function renderExperiment() {
     var experiment = state.experiment;
     if (!experiment) {
-      views.experiment.innerHTML = "<div class=\"section-head\"><h2>实验设计</h2><p>选择机制假设后自动生成实验</p><span class=\"tag\">Step 3</span></div><div class=\"empty\">暂无实验，请先分析口碑并选择机制假设。</div>";
+      views.experiment.innerHTML = "<div class=\"section-head\"><h2>实验设计</h2><p>选择机制假设后自动生成实验</p><span class=\"tag\">Step 3</span></div>" +
+        renderStageGuide("评审实验设计", [
+          "确认对照组与实验组只差一个关键机制。",
+          "确认指标能代表你要验证的动机，而不是只看完成率。",
+          "记住每组 12 个会话才是目标样本；少于目标只能做探索性观察。"
+        ]) + "<div class=\"empty\">暂无实验，请先分析口碑并选择机制假设。</div>";
       return;
     }
 
@@ -393,6 +451,11 @@
 
     views.experiment.innerHTML =
       "<div class=\"section-head\"><h2>实验设计</h2><p>验证「" + escapeHTML(hypothesis ? hypothesis.title : "") + "」</p><span class=\"tag\">Step 3</span></div>" +
+      renderStageGuide("评审实验设计", [
+        "确认对照组与实验组只差一个关键机制。",
+        "确认指标能代表你要验证的动机，而不是只看完成率。",
+        "记住每组 12 个会话才是目标样本；少于目标只能做探索性观察。"
+      ]) +
       "<div class=\"grid cols-2\">" + groups + "</div>" +
       "<div class=\"panel\" style=\"margin-top:14px;\"><h3 class=\"panel-title\">指标与通过线</h3>" +
         "<table><thead><tr><th>指标</th><th>最低通过线</th><th>为什么重要</th></tr></thead><tbody>" + metrics + "</tbody></table>" +
@@ -407,7 +470,12 @@
   function renderPrototype() {
     var experiment = state.experiment;
     if (!experiment) {
-      views.prototype.innerHTML = "<div class=\"section-head\"><h2>机制原型</h2><p>浏览器内可玩机制切片</p><span class=\"tag\">Step 4</span></div><div class=\"empty\">暂无实验，请先完成口碑分析。</div>";
+      views.prototype.innerHTML = "<div class=\"section-head\"><h2>机制原型</h2><p>浏览器内可玩机制切片</p><span class=\"tag\">Step 4</span></div>" +
+        renderStageGuide("如何跑原型？", [
+          "先跑对照组，再跑实验组，避免只体验新奇感。",
+          "每次操作都会记录为行为事件；一次体验只证明流程可跑通。",
+          "真正的机制判断需要多个独立会话。"
+        ]) + "<div class=\"empty\">暂无实验，请先完成口碑分析。</div>";
       return;
     }
 
@@ -434,6 +502,11 @@
 
     views.prototype.innerHTML =
       "<div class=\"section-head\"><h2>机制原型</h2><p>验证生物岗位机制是否产生理解、策略表达与二次兴趣</p><span class=\"tag\">Step 4</span></div>" +
+      renderStageGuide("如何跑原型？", [
+        "先跑对照组，再跑实验组，避免只体验新奇感。",
+        "每次操作都会记录为行为事件；一次体验只证明流程可跑通。",
+        "真正的机制判断需要多个独立会话。"
+      ]) +
       gameHTML +
       "<div class=\"panel\" style=\"margin-top:14px;\"><h3 class=\"panel-title\">行为事件流</h3><div class=\"event-log\">" + eventsHTML + "</div></div>";
 
@@ -763,6 +836,12 @@
 
     views.result.innerHTML =
       "<div class=\"section-head\"><h2>结果回流</h2><p>读取本地会话并计算实验指标</p><span class=\"tag\">Step 5</span></div>" +
+      renderStageGuide("如何读结果？", [
+        "先看样本状态：未开始、小样本、收集中或达到目标样本。",
+        "再看 Wilson 95% 置信区间；区间重叠说明不确定性仍高。",
+        "结果用于判断下一步：继续收集、调整机制或暂缓；不是自动立项结论。",
+        "导出 JSON / CSV，形成可复盘的证据包。"
+      ]) +
       "<div class=\"panel\"><h3 class=\"panel-title\">实验组行为漏斗</h3>" + funnel + "</div>" +
       "<div class=\"panel\" style=\"margin-top:14px;\"><h3 class=\"panel-title\">指标对比（Wilson 95% CI）</h3>" +
         "<table><thead><tr><th>组别</th><th>样本</th><th>完成率</th><th>主动调整率</th><th>重开率</th><th>分享率</th></tr></thead><tbody>" + rows + "</tbody></table>" +

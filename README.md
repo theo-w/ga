@@ -43,9 +43,10 @@ python3 -m http.server 8000
 ## 核心流程
 
 1. **输入洞察**
+   - 按系统内「最小使用路径」逐步引导完成业务目标；
    - 导入本地 Steam / TapTap 评论 JSON，或使用演示数据、JSON / 按行评论样本；
    - 展示平台、样本量、时间范围、跳过记录等数据集证据；
-   - 识别玩家动机、需求强度、缺口强度和跨竞品证据。
+   - 识别玩家动机、相对提及强度、未满足、缺口强度和跨竞品证据。
 
 2. **机制假设**
    - 生成最多 3 个可验证机制假设；
@@ -82,11 +83,11 @@ python3 -m http.server 8000
 本仓库已安装并初始化 GitHub Spec Kit：
 
 - 项目原则：[.specify/memory/constitution.md](.specify/memory/constitution.md)
-- 当前功能规格：[specs/002-real-review-import/spec.md](specs/002-real-review-import/spec.md)
-- 实施计划：[specs/002-real-review-import/plan.md](specs/002-real-review-import/plan.md)
-- 数据模型：[specs/002-real-review-import/data-model.md](specs/002-real-review-import/data-model.md)
-- 快速验证：[specs/002-real-review-import/quickstart.md](specs/002-real-review-import/quickstart.md)
-- 任务清单：[specs/002-real-review-import/tasks.md](specs/002-real-review-import/tasks.md)
+- 当前功能规格：[specs/003-guided-user-workflow/spec.md](specs/003-guided-user-workflow/spec.md)
+- 实施计划：[specs/003-guided-user-workflow/plan.md](specs/003-guided-user-workflow/plan.md)
+- 数据模型：沿用 [specs/002-real-review-import/data-model.md](specs/002-real-review-import/data-model.md)
+- 快速验证：[specs/003-guided-user-workflow/quickstart.md](specs/003-guided-user-workflow/quickstart.md)
+- 任务清单：[specs/003-guided-user-workflow/tasks.md](specs/003-guided-user-workflow/tasks.md)
 
 Codex Spec-Kit 技能位于：
 
