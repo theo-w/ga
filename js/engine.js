@@ -5,42 +5,42 @@
     {
       id: "collection",
       label: "收集",
-      keywords: ["收集", "捕捉", "宠物", "生物", "图鉴", "养成"]
+      keywords: ["收集", "捕捉", "宠物", "生物", "图鉴", "养成", "collect", "collection", "capture", "creature", "pet", "companion"]
     },
     {
       id: "automation",
       label: "自动化",
-      keywords: ["自动化", "自动", "产线", "工厂", "代工", "生产"]
+      keywords: ["自动化", "自动", "产线", "工厂", "代工", "生产", "automation", "automated", "factory", "production", "assembly"]
     },
     {
       id: "building",
       label: "建造",
-      keywords: ["建造", "建筑", "基地", "建设", "农场"]
+      keywords: ["建造", "建筑", "基地", "建设", "农场", "build", "building", "base", "construction", "farm"]
     },
     {
       id: "cooperation",
       label: "协作",
-      keywords: ["联机", "好友", "合作", "协作", "一起", "共同"]
+      keywords: ["联机", "好友", "合作", "协作", "一起", "共同", "multiplayer", "co-op", "coop", "friend", "cooperate", "together"]
     },
     {
       id: "growth",
       label: "成长目标",
-      keywords: ["成长", "升级", "后期", "目标", "长线", "内容量"]
+      keywords: ["成长", "升级", "后期", "目标", "长线", "内容量", "progress", "progression", "upgrade", "late game", "goal", "long-term", "content"]
     },
     {
       id: "expression",
       label: "策略表达",
-      keywords: ["表达", "个性", "自定义", "搭配", "组合", "策略"]
+      keywords: ["表达", "个性", "自定义", "搭配", "组合", "策略", "customization", "customize", "personality", "build variety", "strategy", "strategic"]
     },
     {
       id: "exploration",
       label: "探索",
-      keywords: ["探索", "地图", "世界", "区域", "发现"]
+      keywords: ["探索", "地图", "世界", "区域", "发现", "explore", "exploration", "map", "world", "region", "discover"]
     },
     {
       id: "mastery",
       label: "掌握技巧",
-      keywords: ["操作", "技巧", "手感", "挑战", "难度"]
+      keywords: ["操作", "技巧", "手感", "挑战", "难度", "controls", "skill", "skill-based", "challenge", "difficulty", "mechanics"]
     }
   ];
 
@@ -161,9 +161,188 @@
     }).filter(Boolean);
   }
 
+  function normalizeDateValue(value, unitSeconds) {
+    if (value == null || value === "") return null;
+    if (typeof value === "number" && isFinite(value)) {
+      var ms = unitSeconds ? value * 1000 : value;
+      var date = new Date(ms);
+      return isNaN(date.getTime()) ? null : date.toISOString();
+    }
+    var parsed = new Date(String(value));
+    return isNaN(parsed.getTime()) ? null : parsed.toISOString();
+  }
+
+  function stableReviewId(value, prefix, index) {
+    if (value == null || String(value).trim() === "") {
+      return prefix + "-" + String(index + 1).padStart(3, "0");
+    }
+    return String(value).trim();
+  }
+
+  function tapTapScore(item) {
+    if (!item) return null;
+    if (typeof item.score === "number") return item.score;
+    if (typeof item.rating === "number") return item.rating;
+    if (item.score && typeof item.score.value === "number") return item.score.value;
+    if (item.rating && typeof item.rating.value === "number") return item.rating.value;
+    return null;
+  }
+
+  function tapTapText(item) {
+    if (!item) return "";
+    if (typeof item.text === "string") return item.text;
+    if (item.contents && typeof item.contents.text === "string") return item.contents.text;
+    if (typeof item.content === "string") return item.content;
+    return "";
+  }
+
+  function detectReviewInput(input) {
+    if (!input || typeof input !== "object") return null;
+
+    if (input.source === "game_lab" && Array.isArray(input.reviews)) {
+      return {
+        platform: "game_lab",
+        game: input.game || input.title,
+        retrievedAt: input.retrievedAt || input.fetchedAt,
+        records: input.reviews
+      };
+    }
+
+    if (Array.isArray(input.reviews)) {
+      var steamLike = input.reviews.some(function (item) {
+        return item && (
+          typeof item.review === "string" ||
+          typeof item.voted_up === "boolean" ||
+          item.recommendationid != null
+        );
+      });
+      if (steamLike || input.source === "steam") {
+        return {
+          platform: "steam",
+          game: input.game || input.app_name || input.title,
+          retrievedAt: input.retrievedAt || input.fetchedAt,
+          records: input.reviews
+        };
+      }
+
+      return {
+        platform: "taptap",
+        game: input.game || input.title,
+        retrievedAt: input.retrievedAt || input.fetched_at,
+        records: input.reviews
+      };
+    }
+
+    if (input.data && typeof input.data === "object") {
+      var records = null;
+      if (Array.isArray(input.data.list)) records = input.data.list;
+      if (!records && Array.isArray(input.data.reviews)) records = input.data.reviews;
+      if (records) {
+        return {
+          platform: "taptap",
+          game: (input.data.game && input.data.game.name) || input.game || input.title,
+          retrievedAt: input.retrievedAt || input.fetchedAt || input.data.fetchedAt,
+          records: records
+        };
+      }
+    }
+
+    return null;
+  }
+
+  function importReviewDataset(input, fileName, importedAt) {
+    var parsed = input;
+    if (typeof input === "string") {
+      try {
+        parsed = JSON.parse(input);
+      } catch (error) {
+        throw new Error("导入失败：文件必须是有效 JSON。");
+      }
+    }
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      throw new Error("导入失败：JSON 根节点必须是对象。");
+    }
+
+    var detected = detectReviewInput(parsed);
+    if (!detected) throw new Error("导入失败：无法识别的评论格式。");
+
+    var records = detected.records;
+    var reviews = [];
+    var skipped = 0;
+    var createdDates = [];
+
+    records.forEach(function (item, index) {
+      var text = "";
+      var sentiment = "neutral";
+      var createdAt = null;
+      var id = null;
+
+      if (detected.platform === "game_lab") {
+        if (!item) return;
+        text = typeof item.text === "string" ? item.text : "";
+        sentiment = normalizeSentiment(item.sentiment);
+        createdAt = normalizeDateValue(item.createdAt, false);
+        id = item.id;
+      } else if (detected.platform === "steam") {
+        if (!item) {
+          skipped += 1;
+          return;
+        }
+        text = typeof item.review === "string" ? item.review : "";
+        sentiment = item.voted_up === true ? "positive" : (item.voted_up === false ? "negative" : "neutral");
+        createdAt = normalizeDateValue(item.timestamp_created, true);
+        id = item.recommendationid || item.id;
+      } else {
+        if (!item) {
+          skipped += 1;
+          return;
+        }
+        text = tapTapText(item);
+        var score = tapTapScore(item);
+        sentiment = score == null ? "neutral" : (score >= 4 ? "positive" : (score <= 2 ? "negative" : "neutral"));
+        createdAt = normalizeDateValue(item.created_at || item.createdAt, false);
+        id = item.id;
+      }
+
+      if (!text.trim()) {
+        skipped += 1;
+        return;
+      }
+
+      if (createdAt) createdDates.push(createdAt);
+      reviews.push({
+        id: stableReviewId(id, detected.platform, index),
+        game: String(detected.game || "未知"),
+        sentiment: sentiment,
+        text: text.trim(),
+        createdAt: createdAt || undefined
+      });
+    });
+
+    if (!reviews.length) {
+      throw new Error("导入失败：没有可导入的评论" + (skipped ? "，跳过 " + skipped + " 条空记录。" : "。"));
+    }
+
+    createdDates.sort();
+    var dataset = {
+      kind: "real",
+      platform: detected.platform,
+      game: String(detected.game || "未知"),
+      fileName: String(fileName || "未知"),
+      importedAt: String(importedAt || new Date().toISOString()),
+      retrievedAt: normalizeDateValue(detected.retrievedAt, false),
+      sampleCount: reviews.length,
+      skippedCount: skipped,
+      startedAt: createdDates.length ? createdDates[0] : null,
+      endedAt: createdDates.length ? createdDates[createdDates.length - 1] : null
+    };
+
+    return { dataset: dataset, reviews: reviews };
+  }
+
   function isUnmet(review) {
     return review.sentiment === "negative" ||
-      /希望|想要|缺少|不足|期待|没法|无法|不够|重复|孤独/.test(review.text);
+      /希望|想要|缺少|不足|期待|没法|无法|不够|重复|孤独|hope|wish|want|need|lack|missing|not enough|repetitive|grind|lonely/i.test(review.text);
   }
 
   function analyzeMotivations(reviews) {
@@ -177,8 +356,9 @@
       var unmet = 0;
 
       reviews.forEach(function (review) {
+        var normalizedReviewText = String(review.text || "").toLowerCase();
         var hit = motivation.keywords.some(function (keyword) {
-          return review.text.indexOf(keyword) !== -1;
+          return normalizedReviewText.indexOf(String(keyword).toLowerCase()) !== -1;
         });
         if (!hit) return;
         games[review.game] = true;
@@ -494,6 +674,7 @@
     intervalsOverlap: intervalsOverlap,
     DEMO_REVIEWS: DEMO_REVIEWS,
     parseReviews: parseReviews,
+    importReviewDataset: importReviewDataset,
     analyzeMotivations: analyzeMotivations,
     buildHypotheses: buildHypotheses,
     buildExperiment: buildExperiment,

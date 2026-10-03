@@ -23,6 +23,126 @@ test("parses JSON input and normalizes sentiment", () => {
   assert.equal(reviews[1].sentiment, "positive");
 });
 
+test("imports a normalized Game Lab review dataset", () => {
+  const result = engine.importReviewDataset({
+    source: "game_lab",
+    game: "Example Game",
+    retrievedAt: "2026-10-03T08:00:00.000Z",
+    reviews: [
+      {
+        id: "review-1",
+        game: "Example Game",
+        sentiment: "negative",
+        text: "希望生物可以参与自动化生产。",
+        createdAt: "2026-09-30T00:00:00.000Z"
+      }
+    ]
+  }, "game-lab.json", "2026-10-03T08:10:00.000Z");
+
+  assert.equal(result.dataset.kind, "real");
+  assert.equal(result.dataset.platform, "game_lab");
+  assert.equal(result.dataset.game, "Example Game");
+  assert.equal(result.dataset.fileName, "game-lab.json");
+  assert.equal(result.dataset.importedAt, "2026-10-03T08:10:00.000Z");
+  assert.equal(result.dataset.retrievedAt, "2026-10-03T08:00:00.000Z");
+  assert.equal(result.dataset.sampleCount, 1);
+  assert.equal(result.dataset.skippedCount, 0);
+  assert.equal(result.dataset.startedAt, "2026-09-30T00:00:00.000Z");
+  assert.equal(result.dataset.endedAt, "2026-09-30T00:00:00.000Z");
+  assert.equal(result.reviews.length, 1);
+  assert.equal(result.reviews[0].id, "review-1");
+  assert.equal(result.reviews[0].game, "Example Game");
+  assert.equal(result.reviews[0].sentiment, "negative");
+});
+
+test("imports a Steam-compatible review dataset", () => {
+  const result = engine.importReviewDataset({
+    query_summary: { total_reviews: 2 },
+    reviews: [
+      {
+        recommendationid: "steam-1",
+        review: "The automation loop is satisfying.",
+        voted_up: true,
+        timestamp_created: 1790000000
+      },
+      {
+        recommendationid: "steam-2",
+        review: "The late game lacks goals.",
+        voted_up: false,
+        timestamp_created: 1790001000
+      }
+    ]
+  }, "steam.json", "2026-10-03T08:10:00.000Z");
+
+  assert.equal(result.dataset.platform, "steam");
+  assert.equal(result.dataset.game, "未知");
+  assert.equal(result.dataset.sampleCount, 2);
+  assert.equal(result.dataset.skippedCount, 0);
+  assert.equal(result.dataset.startedAt, new Date(1790000000 * 1000).toISOString());
+  assert.equal(result.dataset.endedAt, new Date(1790001000 * 1000).toISOString());
+  assert.equal(result.reviews[0].id, "steam-1");
+  assert.equal(result.reviews[0].sentiment, "positive");
+  assert.equal(result.reviews[1].sentiment, "negative");
+});
+
+test("imports a TapTap-compatible review dataset", () => {
+  const result = engine.importReviewDataset({
+    data: {
+      game: { name: "Example Mobile Game" },
+      list: [
+        {
+          id: "tap-1",
+          text: "自动化玩法很有深度。",
+          score: 5,
+          created_at: "2026-09-28T00:00:00.000Z"
+        },
+        {
+          id: "tap-2",
+          contents: { text: "后期缺少目标。" },
+          rating: 1,
+          created_at: "2026-09-29T00:00:00.000Z"
+        }
+      ]
+    }
+  }, "taptap.json", "2026-10-03T08:10:00.000Z");
+
+  assert.equal(result.dataset.platform, "taptap");
+  assert.equal(result.dataset.game, "Example Mobile Game");
+  assert.equal(result.dataset.sampleCount, 2);
+  assert.equal(result.dataset.skippedCount, 0);
+  assert.equal(result.reviews[0].sentiment, "positive");
+  assert.equal(result.reviews[1].text, "后期缺少目标。");
+  assert.equal(result.reviews[1].sentiment, "negative");
+  assert.equal(result.dataset.startedAt, "2026-09-28T00:00:00.000Z");
+  assert.equal(result.dataset.endedAt, "2026-09-29T00:00:00.000Z");
+});
+
+test("imports review datasets from JSON text and skips unusable records", () => {
+  const result = engine.importReviewDataset(JSON.stringify({
+    source: "game_lab",
+    game: "Example Game",
+    reviews: [
+      { id: "ok", sentiment: "positive", text: "基地建造目标清晰。" },
+      { id: "empty", sentiment: "positive", text: "   " },
+      { sentiment: "negative", text: "希望加入自动化。" }
+    ]
+  }), "mixed.json", "2026-10-03T08:10:00.000Z");
+
+  assert.equal(result.dataset.sampleCount, 2);
+  assert.equal(result.dataset.skippedCount, 1);
+  assert.equal(result.reviews[0].id, "ok");
+  assert.match(result.reviews[1].id, /^game_lab-003$/);
+});
+
+test("rejects invalid and unsupported review datasets", () => {
+  assert.throws(() => engine.importReviewDataset("not-json"), /有效 JSON/);
+  assert.throws(() => engine.importReviewDataset({ foo: "bar" }), /无法识别的评论格式/);
+  assert.throws(() => engine.importReviewDataset({ source: "game_lab", reviews: [] }), /没有可导入的评论/);
+  assert.throws(() => engine.importReviewDataset({
+    reviews: [{ review: "   ", voted_up: true }]
+  }), /没有可导入的评论.*跳过 1/);
+});
+
 test("analyzes motivations with evidence and gap score", () => {
   const stats = engine.analyzeMotivations(engine.DEMO_REVIEWS);
   assert.ok(stats.length > 0);
@@ -31,6 +151,30 @@ test("analyzes motivations with evidence and gap score", () => {
   assert.ok(collection.mentions > 0);
   assert.ok(collection.evidence.length > 0);
   assert.ok(collection.gapScore > 0);
+});
+
+test("analyzes English Steam reviews and generates a collection hypothesis", () => {
+  const result = engine.importReviewDataset({
+    source: "steam",
+    game: "Automation Frontier",
+    reviews: [
+      {
+        recommendationid: "steam-en-1",
+        review: "Creature Collection is fun, but I wish creatures could work in Base Automation.",
+        voted_up: false
+      },
+      {
+        recommendationid: "steam-en-2",
+        review: "The factory production loop is satisfying.",
+        voted_up: true
+      }
+    ]
+  }, "steam-en.json");
+  const stats = engine.analyzeMotivations(result.reviews);
+  const hypotheses = engine.buildHypotheses(stats, 3);
+
+  assert.ok(stats.some((item) => item.id === "collection"));
+  assert.ok(hypotheses.some((item) => item.id === "HYP-001" && item.title === "生物作为生产单元"));
 });
 
 test("builds hypothesis and experiment", () => {

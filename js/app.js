@@ -16,6 +16,7 @@
   var defaultState = {
     version: 1,
     inputText: "",
+    dataset: null,
     reviews: [],
     stats: [],
     hypotheses: [],
@@ -35,6 +36,7 @@
       var parsed = JSON.parse(raw);
       if (!parsed || parsed.version !== 1) return JSON.parse(JSON.stringify(defaultState));
       parsed.inputText = parsed.inputText || "";
+      parsed.dataset = parsed.dataset || null;
       parsed.reviews = parsed.reviews || [];
       parsed.stats = parsed.stats || [];
       parsed.hypotheses = parsed.hypotheses || [];
@@ -92,6 +94,17 @@
       .replace(/'/g, "&#39;");
   }
 
+  function displayValue(value) {
+    return value == null || String(value).trim() === "" ? "未知" : String(value);
+  }
+
+  function platformLabel(platform) {
+    if (platform === "steam") return "Steam";
+    if (platform === "taptap") return "TapTap";
+    if (platform === "game_lab") return "Game Lab JSON";
+    return displayValue(platform);
+  }
+
   function selectedHypothesis() {
     var id = state.selectedHypothesisId;
     return state.hypotheses.filter(function (item) { return item.id === id; })[0] || null;
@@ -125,6 +138,34 @@
     if (name === "knowledge") renderKnowledge();
   }
 
+  function renderDatasetCard() {
+    if (state.dataset && state.dataset.kind === "real") {
+      var dataset = state.dataset;
+      return "<div class=\"dataset-card real\">" +
+        "<div class=\"dataset-head\"><span class=\"dataset-kind\">真实数据</span><b>" + escapeHTML(platformLabel(dataset.platform)) + "</b></div>" +
+        "<dl class=\"dataset-grid\">" +
+          "<div><dt>游戏</dt><dd>" + escapeHTML(displayValue(dataset.game)) + "</dd></div>" +
+          "<div><dt>样本</dt><dd>" + escapeHTML(String(dataset.sampleCount)) + " 条</dd></div>" +
+          "<div><dt>跳过记录</dt><dd>" + escapeHTML(String(dataset.skippedCount)) + " 条</dd></div>" +
+          "<div><dt>导入时间</dt><dd>" + escapeHTML(displayValue(dataset.importedAt)) + "</dd></div>" +
+          "<div><dt>采集时间</dt><dd>" + escapeHTML(displayValue(dataset.retrievedAt)) + "</dd></div>" +
+          "<div><dt>评论范围</dt><dd>" + escapeHTML(displayValue(dataset.startedAt)) + " → " + escapeHTML(displayValue(dataset.endedAt)) + "</dd></div>" +
+        "</dl>" +
+        "<div class=\"dataset-file\">来源文件：" + escapeHTML(displayValue(dataset.fileName)) + " · 仅本地读取，未上传</div>" +
+      "</div>";
+    }
+    if (state.reviews.length || state.inputText) {
+      return "<div class=\"dataset-card manual\">" +
+        "<div class=\"dataset-head\"><span class=\"dataset-kind\">手动 / 演示数据</span><b>非真实数据集</b></div>" +
+        "<div class=\"dataset-file\">当前结果仅用于流程验证。若要建立可审计证据链，请导入本地 Steam / TapTap 评论 JSON。</div>" +
+      "</div>";
+    }
+    return "<div class=\"dataset-card manual\">" +
+      "<div class=\"dataset-head\"><span class=\"dataset-kind\">等待数据</span><b>尚未导入</b></div>" +
+      "<div class=\"dataset-file\">可导入本地 Steam / TapTap 评论 JSON；文件只在浏览器内读取。</div>" +
+    "</div>";
+  }
+
   function renderInput() {
     var statsHTML = "";
     if (state.stats.length) {
@@ -150,22 +191,27 @@
     } else if (state.reviews.length) {
       statsHTML = "<div class=\"empty\">尚未分析，请点击「分析口碑」。</div>";
     } else {
-      statsHTML = "<div class=\"empty\">载入演示数据或粘贴评论样本后开始分析。</div>";
+      statsHTML = "<div class=\"empty\">导入真实评论 JSON、载入演示数据或粘贴评论样本后开始分析。</div>";
     }
 
+    var datasetHTML = renderDatasetCard();
+
     views.input.innerHTML =
-      "<div class=\"section-head\"><h2>输入洞察</h2><p>支持演示数据、JSON 数组或「游戏|情绪|评论」按行输入</p><span class=\"tag\">Step 1</span></div>" +
+      "<div class=\"section-head\"><h2>输入洞察</h2><p>支持真实评论 JSON、演示数据、JSON 数组或「游戏|情绪|评论」按行输入</p><span class=\"tag\">Step 1</span></div>" +
       "<div class=\"grid cols-2\">" +
         "<div class=\"panel\"><h3 class=\"panel-title\">口碑样本</h3>" +
+          "<div id=\"dataset-card\">" + datasetHTML + "</div>" +
           "<label class=\"field\" for=\"review-input\">评论输入</label>" +
           "<textarea id=\"review-input\" placeholder=\"幻兽帕鲁|负面|希望生物参与基地生产&#10;星露谷物语|正面|农场成长目标清晰\"></textarea>" +
           "<div class=\"actions\">" +
+            "<button class=\"ghost small\" id=\"import-reviews\" type=\"button\">导入真实评论 JSON</button>" +
+            "<input id=\"review-file\" type=\"file\" accept=\"application/json,.json\" class=\"hidden\">" +
             "<button class=\"ghost small\" id=\"load-demo\" type=\"button\">载入演示数据</button>" +
             "<button class=\"primary small\" id=\"analyze-reviews\" type=\"button\">分析口碑</button>" +
             "<button class=\"ghost small\" id=\"clear-input\" type=\"button\">清空输入</button>" +
           "</div>" +
           "<div id=\"input-error\"></div>" +
-          "<div class=\"note\">情绪支持：positive / negative / neutral，或：正面 / 负面 / 中性。</div>" +
+          "<div class=\"note\">情绪支持：positive / negative / neutral，或：正面 / 负面 / 中性。真实评论导入仅在本地完成，不会上传文件。</div>" +
         "</div>" +
         "<div class=\"panel\"><h3 class=\"panel-title\">动机与缺口</h3><div id=\"motivation-stats\">" + statsHTML + "</div></div>" +
       "</div>";
@@ -174,19 +220,53 @@
     textarea.value = state.inputText;
     textarea.addEventListener("input", function () {
       state.inputText = textarea.value;
+      if (state.dataset && state.dataset.kind === "real") {
+        state.dataset = null;
+        state.reviews = [];
+        state.stats = [];
+        state.hypotheses = [];
+        state.selectedHypothesisId = null;
+        state.experiment = null;
+        var card = document.getElementById("dataset-card");
+        if (card) card.innerHTML = renderDatasetCard();
+      }
       persist();
     });
 
+    document.getElementById("import-reviews").addEventListener("click", function () {
+      document.getElementById("review-file").click();
+    });
+    document.getElementById("review-file").addEventListener("change", importRealReviews);
+
     document.getElementById("load-demo").addEventListener("click", function () {
+      if (gameTimer) {
+        window.clearInterval(gameTimer);
+        gameTimer = null;
+      }
+      state.dataset = null;
       state.inputText = window.GameLabEngine.DEMO_REVIEWS.map(function (review) {
         return review.game + "|" + (review.sentiment === "negative" ? "负面" : "正面") + "|" + review.text;
       }).join("\n");
+      state.reviews = [];
+      state.stats = [];
+      state.hypotheses = [];
+      state.selectedHypothesisId = null;
+      state.experiment = null;
+      state.sessions = [];
+      state.activeSession = null;
+      state.game = null;
       persist();
-      renderInput();
+      renderAll();
     });
 
     document.getElementById("clear-input").addEventListener("click", function () {
       state.inputText = "";
+      state.dataset = null;
+      state.reviews = [];
+      state.stats = [];
+      state.hypotheses = [];
+      state.selectedHypothesisId = null;
+      state.experiment = null;
       persist();
       renderInput();
     });
@@ -195,7 +275,12 @@
       var errorBox = document.getElementById("input-error");
       errorBox.innerHTML = "";
       try {
-        state.reviews = window.GameLabEngine.parseReviews(state.inputText);
+        if (state.dataset && state.dataset.kind === "real" && state.reviews.length) {
+          // Real imports already hold normalized reviews; textarea is an audit-friendly canonical view.
+        } else {
+          state.dataset = null;
+          state.reviews = window.GameLabEngine.parseReviews(state.inputText);
+        }
         state.stats = window.GameLabEngine.analyzeMotivations(state.reviews);
         state.hypotheses = window.GameLabEngine.buildHypotheses(state.stats, 3);
         state.selectedHypothesisId = state.hypotheses.length ? state.hypotheses[0].id : null;
@@ -207,6 +292,50 @@
         errorBox.innerHTML = "<div class=\"error\">" + escapeHTML(error.message) + "</div>";
       }
     });
+  }
+
+  function importRealReviews(event) {
+    var file = event.target.files && event.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      var errorBox = document.getElementById("input-error");
+      if (errorBox) errorBox.innerHTML = "";
+      try {
+        var imported = window.GameLabEngine.importReviewDataset(
+          String(reader.result),
+          file.name,
+          new Date().toISOString()
+        );
+
+        if (gameTimer) {
+          window.clearInterval(gameTimer);
+          gameTimer = null;
+        }
+
+        state.dataset = imported.dataset;
+        state.inputText = JSON.stringify(imported.reviews, null, 2);
+        state.reviews = imported.reviews;
+        state.stats = [];
+        state.hypotheses = [];
+        state.selectedHypothesisId = null;
+        state.experiment = null;
+        state.sessions = [];
+        state.activeSession = null;
+        state.game = null;
+        persist();
+        renderAll();
+        showView("input");
+      } catch (error) {
+        if (errorBox) {
+          errorBox.innerHTML = "<div class=\"error\">" + escapeHTML(error.message) + "</div>";
+        } else {
+          alert(error.message);
+        }
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = "";
   }
 
   function renderHypothesis() {

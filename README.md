@@ -34,7 +34,7 @@ python3 -m http.server 8000
 ## 当前状态
 
 - Game Lab Functional MVP：已可用
-- 真实评论数据接入：未开始
+- 真实评论数据导入：已支持本地 Steam / TapTap JSON（中文与常见英文关键词）
 - 模型能力：本地规则引擎
 - 存储：浏览器 `localStorage`
 - 测试：`npm test`
@@ -43,7 +43,8 @@ python3 -m http.server 8000
 ## 核心流程
 
 1. **输入洞察**
-   - 载入演示数据，或粘贴 JSON / 按行评论样本；
+   - 导入本地 Steam / TapTap 评论 JSON，或使用演示数据、JSON / 按行评论样本；
+   - 展示平台、样本量、时间范围、跳过记录等数据集证据；
    - 识别玩家动机、需求强度、缺口强度和跨竞品证据。
 
 2. **机制假设**
@@ -72,7 +73,7 @@ python3 -m http.server 8000
 
 - 数据保存在当前浏览器；
 - 小样本结果不能直接用于正式立项决策；
-- 当前没有真实评论抓取、后端服务、账号系统和大模型调用；
+- 当前支持本地 JSON 导入，没有真实评论抓取、后端服务、账号系统和大模型调用；
 - 机制知识库当前用于流程演示和结构验证；
 - 区间重叠只作为不确定性提示，不等于正式显著性检验。
 
@@ -81,11 +82,11 @@ python3 -m http.server 8000
 本仓库已安装并初始化 GitHub Spec Kit：
 
 - 项目原则：[.specify/memory/constitution.md](.specify/memory/constitution.md)
-- 当前功能规格：[specs/001-game-lab-mvp/spec.md](specs/001-game-lab-mvp/spec.md)
-- 实施计划：[specs/001-game-lab-mvp/plan.md](specs/001-game-lab-mvp/plan.md)
-- 数据模型：[specs/001-game-lab-mvp/data-model.md](specs/001-game-lab-mvp/data-model.md)
-- 快速验证：[specs/001-game-lab-mvp/quickstart.md](specs/001-game-lab-mvp/quickstart.md)
-- 任务清单：[specs/001-game-lab-mvp/tasks.md](specs/001-game-lab-mvp/tasks.md)
+- 当前功能规格：[specs/002-real-review-import/spec.md](specs/002-real-review-import/spec.md)
+- 实施计划：[specs/002-real-review-import/plan.md](specs/002-real-review-import/plan.md)
+- 数据模型：[specs/002-real-review-import/data-model.md](specs/002-real-review-import/data-model.md)
+- 快速验证：[specs/002-real-review-import/quickstart.md](specs/002-real-review-import/quickstart.md)
+- 任务清单：[specs/002-real-review-import/tasks.md](specs/002-real-review-import/tasks.md)
 
 Codex Spec-Kit 技能位于：
 
