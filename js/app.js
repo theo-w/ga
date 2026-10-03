@@ -24,7 +24,15 @@
     experiment: null,
     sessions: [],
     activeSession: null,
-    game: null
+    game: null,
+    tutorial: {
+      active: true,
+      step: 1,
+      objective: "",
+      exportedAt: null,
+      decision: null,
+      completedAt: null
+    }
   };
 
   var state = loadState();
@@ -45,6 +53,7 @@
       parsed.sessions = parsed.sessions || [];
       parsed.activeSession = parsed.activeSession || null;
       parsed.game = parsed.game || null;
+      parsed.tutorial = normalizeTutorial(parsed.tutorial);
       return parsed;
     } catch (error) {
       console.warn("Game Lab state load failed:", error);
@@ -124,6 +133,7 @@
   }
 
   function renderAll() {
+    renderTutorialPanel();
     Object.keys(views).forEach(function (key) {
       renderView(key);
     });
@@ -136,6 +146,306 @@
     if (name === "prototype") renderPrototype();
     if (name === "result") renderResult();
     if (name === "knowledge") renderKnowledge();
+  }
+
+  function normalizeTutorial(value) {
+    var tutorial = value && typeof value === "object" ? value : {};
+    return {
+      active: tutorial.active !== false,
+      step: Math.min(Math.max(Number(tutorial.step) || 1, 1), 9),
+      objective: typeof tutorial.objective === "string" ? tutorial.objective : "",
+      exportedAt: tutorial.exportedAt || null,
+      decision: tutorial.decision || null,
+      completedAt: tutorial.completedAt || null
+    };
+  }
+
+  var TUTORIAL_STEPS = [
+    {
+      id: "objective",
+      title: "第 1 步 · 明确业务问题",
+      view: "input",
+      action: "写下你要验证的机制、目标玩家和未满足动机。",
+      think: [
+        "这个机制为什么值得验证？它服务哪类玩家的哪个诉求？",
+        "如果证据相反，我愿意放弃或调整这个方向吗？",
+        "我希望这轮验证回答的最小问题是什么？"
+      ],
+      input: true
+    },
+    {
+      id: "sample",
+      title: "第 2 步 · 准备可比样本",
+      view: "input",
+      action: "导入本地 Steam / TapTap 评论 JSON；快速体验可点击「载入演示数据」。",
+      think: [
+        "这些竞品和我的业务问题可比吗？",
+        "样本是否偏向某个平台、语言、时间窗口或产品？",
+        "样本量是否至少支持探索性判断？"
+      ]
+    },
+    {
+      id: "motivation",
+      title: "第 3 步 · 分析动机与缺口",
+      view: "input",
+      action: "点击「分析口碑」，先检查提及、未满足、缺口和跨竞品证据。",
+      think: [
+        "哪些动机既被频繁提及，又存在明显不满？",
+        "这个缺口来自一个产品，还是多个竞品？",
+        "证据评论是否真的支持这个动机判断？"
+      ]
+    },
+    {
+      id: "hypothesis",
+      title: "第 4 步 · 选择机制假设",
+      view: "hypothesis",
+      action: "选择一个可验证的机制假设，不要只选看起来最有趣的。",
+      think: [
+        "这个假设对应哪组动机证据？",
+        "它能否切成一个最小可玩机制原型？",
+        "它和现有竞品的核心差异是什么？"
+      ]
+    },
+    {
+      id: "experiment",
+      title: "第 5 步 · 评审实验设计",
+      view: "experiment",
+      action: "检查对照组、实验组、指标和目标样本。",
+      think: [
+        "两组是否只差一个关键机制？",
+        "完成率、调整率、重开率和分享率能否回答我的业务问题？",
+        "目标样本是否足以降低不确定性？"
+      ]
+    },
+    {
+      id: "prototype",
+      title: "第 6 步 · 体验对照原型",
+      view: "prototype",
+      action: "分别体验对照组和实验组，观察自己的操作与情绪反应。",
+      think: [
+        "实验组是否让我更愿意继续玩或调整策略？",
+        "自动化是否反而让我失去参与感？",
+        "一次体验只能证明流程，不能证明机制成立。"
+      ]
+    },
+    {
+      id: "result",
+      title: "第 7 步 · 回看结果边界",
+      view: "result",
+      action: "查看样本状态、Wilson 95% 置信区间和区间是否重叠。",
+      think: [
+        "结果处于探索性观察、正向信号还是样本不足？",
+        "不确定性是否大到无法支持下一步？",
+        "如果继续，下一个最小实验是什么？"
+      ]
+    },
+    {
+      id: "export",
+      title: "第 8 步 · 导出证据包",
+      view: "result",
+      action: "导出实验 JSON 或事件 CSV，形成可复盘的证据链。",
+      think: [
+        "证据链能否从评论、动机、假设、实验到行为数据完整追溯？",
+        "评审者会质疑哪一环？",
+        "我还缺什么数据才能做下一步决策？"
+      ]
+    },
+    {
+      id: "decision",
+      title: "第 9 步 · 记录业务决策",
+      view: "result",
+      action: "选择下一步：继续验证、调整机制或暂缓方向。",
+      think: [
+        "继续：还缺什么样本或机制变化？",
+        "调整：要改机制、指标还是实验设计？",
+        "暂缓：是什么证据让我决定停止？"
+      ],
+      decision: true
+    }
+  ];
+
+  function currentTutorialStep() {
+    return TUTORIAL_STEPS[state.tutorial.step - 1];
+  }
+
+  function tutorialStepReady(step) {
+    switch (step.id) {
+      case "objective":
+        return state.tutorial.objective.trim().length >= 8;
+      case "sample":
+        return Boolean(state.reviews.length || state.inputText.trim());
+      case "motivation":
+        return state.stats.length > 0;
+      case "hypothesis":
+        return Boolean(selectedHypothesis());
+      case "experiment":
+        return Boolean(state.experiment);
+      case "prototype":
+        return state.sessions.some(function (session) { return session.group === "control"; }) &&
+          state.sessions.some(function (session) { return session.group === "treatment"; });
+      case "result":
+        return state.sessions.length > 0;
+      case "export":
+        return Boolean(state.tutorial.exportedAt);
+      case "decision":
+        return Boolean(state.tutorial.decision);
+      default:
+        return false;
+    }
+  }
+
+  function tutorialReadyLabel(ready, step) {
+    if (ready) return "已完成当前步骤的必要操作";
+    if (step.id === "objective") return "请写下至少 8 个字符的业务目标";
+    if (step.id === "sample") return "请先导入真实评论 JSON 或载入演示数据";
+    if (step.id === "motivation") return "请先点击「分析口碑」";
+    if (step.id === "hypothesis") return "请先选择一个机制假设";
+    if (step.id === "experiment") return "请先生成实验设计";
+    if (step.id === "prototype") return "请至少体验一次对照组和实验组";
+    if (step.id === "result") return "请先生成至少一个会话结果";
+    if (step.id === "export") return "请先导出实验 JSON 或事件 CSV";
+    if (step.id === "decision") return "请选择一个业务决策";
+    return "请完成当前步骤";
+  }
+
+  function renderTutorialPanel() {
+    var panel = document.getElementById("tutorial-panel");
+    if (!panel) return;
+
+    if (!state.tutorial.active) {
+      panel.innerHTML =
+        "<div class=\"tutorial-card idle\">" +
+          "<div><h3>交互式业务教程</h3><p>教程已关闭。你可以随时重新开始，系统不会清除实验数据。</p></div>" +
+          "<div class=\"tutorial-controls\"><button class=\"primary small\" id=\"tutorial-restart\" type=\"button\">重新开始教程</button></div>" +
+        "</div>";
+      document.getElementById("tutorial-restart").addEventListener("click", restartTutorial);
+      return;
+    }
+
+    var step = currentTutorialStep();
+    var ready = tutorialStepReady(step);
+    var progress = Math.round((state.tutorial.step / TUTORIAL_STEPS.length) * 100);
+
+    panel.innerHTML =
+      "<div class=\"tutorial-card\">" +
+        "<div class=\"tutorial-head\">" +
+          "<div><h3>" + escapeHTML(step.title) + "</h3><p>" + escapeHTML(step.action) + "</p></div>" +
+          "<div class=\"tutorial-progress\"><b>" + state.tutorial.step + " / " + TUTORIAL_STEPS.length + "</b><div><span style=\"width:" + progress + "%\"></span></div></div>" +
+        "</div>" +
+        "<div class=\"tutorial-body\">" +
+          "<div class=\"tutorial-box action\"><b>你要做什么</b><p>" + escapeHTML(step.action) + "</p>" +
+            (step.view ? "<button class=\"ghost small\" id=\"tutorial-goto\" type=\"button\">前往「" + escapeHTML(viewLabel(step.view)) + "」</button>" : "") +
+          "</div>" +
+          "<div class=\"tutorial-box think\"><b>你要思考什么</b><ul>" +
+            step.think.map(function (item) { return "<li>" + escapeHTML(item) + "</li>"; }).join("") +
+          "</ul></div>" +
+        "</div>" +
+        (step.input ?
+          "<div class=\"tutorial-objective\"><label for=\"tutorial-objective-input\">我的业务目标</label>" +
+          "<textarea id=\"tutorial-objective-input\" placeholder=\"我想验证「生物作为生产单元」，是否能提升喜欢收集和自动化的玩家在后期生产中的目标感与参与感。\"></textarea>" +
+          "<small>建议包含：机制、目标玩家、未满足动机、要回答的问题。</small></div>" : "") +
+        (step.decision ?
+          "<div class=\"tutorial-decision\"><b>我的下一步决策</b><div>" +
+            ["继续验证", "调整机制", "暂缓方向"].map(function (decision) {
+              var selected = state.tutorial.decision === decision;
+              return "<button class=\"" + (selected ? "primary" : "ghost") + " small\" data-tutorial-decision=\"" + escapeHTML(decision) + "\" type=\"button\">" + escapeHTML(decision) + "</button>";
+            }).join("") +
+          "</div></div>" : "") +
+        "<div class=\"tutorial-controls\">" +
+          "<button class=\"ghost small\" id=\"tutorial-prev\" type=\"button\"" + (state.tutorial.step === 1 ? " disabled" : "") + ">上一步</button>" +
+          "<span class=\"tutorial-status" + (ready ? " ready" : "") + "\">" + escapeHTML(tutorialReadyLabel(ready, step)) + "</span>" +
+          "<button class=\"ghost small\" id=\"tutorial-skip\" type=\"button\">跳过教程</button>" +
+          "<button class=\"primary small\" id=\"tutorial-next\" type=\"button\"" + (ready ? "" : " disabled") + ">" +
+            (state.tutorial.step === TUTORIAL_STEPS.length ? "我已完成思考，完成教程" : "我已完成思考，下一步") +
+          "</button>" +
+        "</div>" +
+      "</div>";
+
+    var objectiveInput = document.getElementById("tutorial-objective-input");
+    if (objectiveInput) {
+      objectiveInput.value = state.tutorial.objective;
+      objectiveInput.addEventListener("input", function () {
+        state.tutorial.objective = objectiveInput.value;
+        persist();
+        updateTutorialControls();
+      });
+    }
+
+    var gotoButton = document.getElementById("tutorial-goto");
+    if (gotoButton) gotoButton.addEventListener("click", function () { showView(step.view); });
+
+    panel.querySelectorAll("[data-tutorial-decision]").forEach(function (button) {
+      button.addEventListener("click", function () {
+        state.tutorial.decision = button.dataset.tutorialDecision;
+        persist();
+        renderTutorialPanel();
+      });
+    });
+
+    document.getElementById("tutorial-prev").addEventListener("click", previousTutorialStep);
+    document.getElementById("tutorial-skip").addEventListener("click", skipTutorial);
+    document.getElementById("tutorial-next").addEventListener("click", nextTutorialStep);
+  }
+
+  function updateTutorialControls() {
+    var step = currentTutorialStep();
+    var ready = tutorialStepReady(step);
+    var status = document.querySelector(".tutorial-status");
+    var next = document.getElementById("tutorial-next");
+    if (status) {
+      status.textContent = tutorialReadyLabel(ready, step);
+      status.classList.toggle("ready", ready);
+    }
+    if (next) next.disabled = !ready;
+  }
+
+  function viewLabel(view) {
+    var labels = {
+      input: "输入洞察",
+      hypothesis: "机制假设",
+      experiment: "实验设计",
+      prototype: "机制原型",
+      result: "结果回流",
+      knowledge: "机制知识库"
+    };
+    return labels[view] || view;
+  }
+
+  function previousTutorialStep() {
+    if (state.tutorial.step > 1) state.tutorial.step -= 1;
+    persist();
+    renderTutorialPanel();
+  }
+
+  function nextTutorialStep() {
+    if (!tutorialStepReady(currentTutorialStep())) return;
+    if (state.tutorial.step < TUTORIAL_STEPS.length) {
+      state.tutorial.step += 1;
+    } else {
+      state.tutorial.completedAt = new Date().toISOString();
+      state.tutorial.active = false;
+    }
+    persist();
+    renderTutorialPanel();
+  }
+
+  function skipTutorial() {
+    state.tutorial.active = false;
+    persist();
+    renderTutorialPanel();
+  }
+
+  function restartTutorial() {
+    state.tutorial = normalizeTutorial({
+      active: true,
+      step: 1,
+      objective: state.tutorial.objective,
+      exportedAt: state.tutorial.exportedAt,
+      decision: state.tutorial.decision,
+      completedAt: null
+    });
+    persist();
+    renderTutorialPanel();
   }
 
   function renderDatasetCard() {
@@ -170,20 +480,6 @@
     return "<div class=\"stage-guide\"><b>" + escapeHTML(title) + "</b><ul>" +
       points.map(function (point) { return "<li>" + escapeHTML(point) + "</li>"; }).join("") +
     "</ul></div>";
-  }
-
-  function renderWorkflowGuide() {
-    return "<div class=\"guide-card\" aria-label=\"最小使用路径\">" +
-      "<div class=\"guide-head\"><h3>最小使用路径</h3><p>目标不是生成完整游戏，而是验证一个机制是否值得继续投入。</p></div>" +
-      "<div class=\"guide-grid\">" +
-        "<div class=\"guide-step\"><span>1</span><div><b>明确业务问题</b><p>我要验证哪个机制，服务哪类玩家的哪个未满足动机？</p></div></div>" +
-        "<div class=\"guide-step\"><span>2</span><div><b>准备可比样本</b><p>选择 3-6 个相近竞品，导入本地评论 JSON；快速体验可用演示数据。</p></div></div>" +
-        "<div class=\"guide-step\"><span>3</span><div><b>先看动机证据</b><p>分析后停留在本页，检查提及、未满足、缺口和跨竞品，再进入假设。</p></div></div>" +
-        "<div class=\"guide-step\"><span>4</span><div><b>选择机制假设</b><p>优先选择证据强、跨产品、可切成最小原型的机制，而不是直接立项。</p></div></div>" +
-        "<div class=\"guide-step\"><span>5</span><div><b>体验对照原型</b><p>分别跑对照组和实验组；一次体验只能验证流程，不能证明机制成立。</p></div></div>" +
-        "<div class=\"guide-step\"><span>6</span><div><b>决策并导出证据</b><p>查看样本与置信区间，导出 JSON / CSV，决定继续、调整或放弃。</p></div></div>" +
-      "</div>" +
-    "</div>";
   }
 
   function renderMetricGuide() {
@@ -231,7 +527,6 @@
 
     views.input.innerHTML =
       "<div class=\"section-head\"><h2>输入洞察</h2><p>支持真实评论 JSON、演示数据、JSON 数组或「游戏|情绪|评论」按行输入</p><span class=\"tag\">Step 1</span></div>" +
-      renderWorkflowGuide() +
       "<div class=\"grid cols-2\">" +
         "<div class=\"panel\"><h3 class=\"panel-title\">口碑样本</h3>" +
           "<div id=\"dataset-card\">" + datasetHTML + "</div>" +
@@ -685,6 +980,7 @@
 
     logEvent("start", { group: group });
     renderPrototype();
+    renderTutorialPanel();
   }
 
   function logEvent(type, detail) {
@@ -770,6 +1066,7 @@
     state.activeSession.endedAt = new Date().toISOString();
     persist();
     renderPrototype();
+    renderTutorialPanel();
   }
 
   function restartSession() {
@@ -889,13 +1186,19 @@
 
   function exportJSON() {
     var stamp = new Date().toISOString().replace(/[:.]/g, "-");
+    state.tutorial.exportedAt = new Date().toISOString();
+    persist();
     download("game-lab-experiment-" + stamp + ".json", JSON.stringify(state, null, 2), "application/json");
+    renderTutorialPanel();
   }
 
   function exportCSV() {
     var csv = window.GameLabEngine.eventsToCSV(state.sessions);
     var stamp = new Date().toISOString().replace(/[:.]/g, "-");
+    state.tutorial.exportedAt = new Date().toISOString();
+    persist();
     download("game-lab-events-" + stamp + ".csv", csv, "text/csv;charset=utf-8");
+    renderTutorialPanel();
   }
 
   function importJSON(event) {
@@ -912,6 +1215,7 @@
           gameTimer = null;
         }
         state = imported;
+        state.tutorial = normalizeTutorial(state.tutorial);
         restoreActiveTimer();
         persist();
         renderAll();
