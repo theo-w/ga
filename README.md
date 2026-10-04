@@ -39,36 +39,55 @@ python3 -m http.server 8000
 - 存储：浏览器 `localStorage`
 - 测试：`npm test`
 - 统计判断：Wilson 95% 置信区间、样本状态、区间重叠提示
+- 交互式教程：9 步业务流程、每步思考问题、完成条件、进度持久化，可跳过或重新开始
 
 ## 核心流程
 
-1. **输入洞察**
-   - 按系统内「最小使用路径」逐步引导完成业务目标；
+Game Lab 用一条 9 步交互式业务教程引导用户：每一步都包含「你要做什么」「你要思考什么」和完成条件，避免用户只看到抽象路径而不知道如何推进。教程完成后，结果会继续沉淀到机制知识库。
+
+1. **明确业务问题**
+   - 写下机制、目标玩家、未满足动机和本轮要回答的问题；
+   - 教程要求先形成业务目标，才能进入下一步。
+
+2. **准备可比样本**
    - 导入本地 Steam / TapTap 评论 JSON，或使用演示数据、JSON / 按行评论样本；
    - 展示平台、样本量、时间范围、跳过记录等数据集证据；
-   - 识别玩家动机、相对提及强度、未满足、缺口强度和跨竞品证据。
+   - 引导检查竞品可比性、平台偏差、时间窗口和样本量边界。
 
-2. **机制假设**
+3. **分析动机与缺口**
+   - 识别玩家动机、相对提及强度、未满足、缺口强度和跨竞品证据；
+   - 引导区分单产品问题和跨竞品机会，并检查证据评论。
+
+4. **选择机制假设**
    - 生成最多 3 个可验证机制假设；
-   - 每个假设包含命题、机制组合、目标玩家、差异点、先例、风险、证据和置信度。
+   - 每个假设包含命题、机制组合、目标玩家、差异点、先例、风险、证据和置信度；
+   - 教程引导用户选择证据链完整、可切成最小原型的假设。
 
-3. **实验设计**
+5. **评审实验设计**
    - 自动生成对照组与实验组；
-   - 定义完成率、主动调整率、重开率和分享意愿阈值。
+   - 定义完成率、主动调整率、重开率和分享意愿阈值；
+   - 引导检查两组是否只差一个关键机制，以及指标是否回答业务问题。
 
-4. **机制原型**
+6. **体验对照原型**
    - 对照组：手动采集资源；
    - 实验组：捕捉生物、分配岗位、形成自动化生产；
-   - 采集行为事件并写入 `localStorage`。
+   - 采集行为事件并写入 `localStorage`；
+   - 教程要求分别体验对照组和实验组，并反思参与感、策略选择和自动化边界。
 
-5. **结果回流**
+7. **回看结果边界**
    - 计算两组指标和行为漏斗；
    - 展示 Wilson 95% 置信区间、样本状态和区间重叠提示；
-   - 支持实验 JSON 导出、事件 CSV 导出、JSON 导入和清空数据。
+   - 引导判断探索性观察、正向信号或样本不足。
 
-6. **机制知识库**
-   - 沉淀机制、动机、效果、边界条件和下一步动作；
-   - 当前知识由规则生成，未经统计显著性检验。
+8. **导出证据包**
+   - 支持实验 JSON 导出、事件 CSV 导出、JSON 导入和清空数据；
+   - 教程会在导出后记录证据包完成时间。
+
+9. **记录业务决策**
+   - 选择 `继续验证`、`调整机制` 或 `暂缓方向`；
+   - 系统记录决策，但不自动立项、不替代人工判断。
+
+完成教程后，系统会把机制、动机、效果、边界条件和下一步动作沉淀到**机制知识库**；当前知识由规则生成，未经统计显著性检验。
 
 ## 产品边界
 
@@ -83,11 +102,11 @@ python3 -m http.server 8000
 本仓库已安装并初始化 GitHub Spec Kit：
 
 - 项目原则：[.specify/memory/constitution.md](.specify/memory/constitution.md)
-- 当前功能规格：[specs/003-guided-user-workflow/spec.md](specs/003-guided-user-workflow/spec.md)
-- 实施计划：[specs/003-guided-user-workflow/plan.md](specs/003-guided-user-workflow/plan.md)
+- 当前功能规格：[specs/004-interactive-user-tutorial/spec.md](specs/004-interactive-user-tutorial/spec.md)
+- 实施计划：[specs/004-interactive-user-tutorial/plan.md](specs/004-interactive-user-tutorial/plan.md)
 - 数据模型：沿用 [specs/002-real-review-import/data-model.md](specs/002-real-review-import/data-model.md)
-- 快速验证：[specs/003-guided-user-workflow/quickstart.md](specs/003-guided-user-workflow/quickstart.md)
-- 任务清单：[specs/003-guided-user-workflow/tasks.md](specs/003-guided-user-workflow/tasks.md)
+- 快速验证：[specs/004-interactive-user-tutorial/quickstart.md](specs/004-interactive-user-tutorial/quickstart.md)
+- 任务清单：[specs/004-interactive-user-tutorial/tasks.md](specs/004-interactive-user-tutorial/tasks.md)
 
 Codex Spec-Kit 技能位于：
 

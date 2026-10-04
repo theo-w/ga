@@ -166,28 +166,49 @@ tr:last-child td { border-bottom: 0; }
 }
 .evidence-item .meta-line { color: var(--muted); font-size: 10.5px; margin-bottom: 4px; }
 
-/* Guided workflow */
-.guide-card {
-  border: 1px solid rgba(78,212,208,.20); border-radius: 14px;
-  background: linear-gradient(145deg, rgba(78,212,208,.07), rgba(167,139,250,.03));
-  padding: 14px; margin-bottom: 14px;
+/* Interactive tutorial */
+.tutorial-card {
+  display: grid; gap: 12px;
+  border: 1px solid rgba(78,212,208,.24); border-radius: 16px;
+  background: linear-gradient(145deg, rgba(78,212,208,.08), rgba(167,139,250,.04));
+  padding: 16px; margin: 16px 0 18px;
 }
-.guide-head { display: flex; align-items: end; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
-.guide-head h3 { font-size: 14px; }
-.guide-head p { font-size: 11.5px; color: var(--muted); line-height: 1.6; }
-.guide-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-.guide-step {
-  display: grid; grid-template-columns: 24px 1fr; gap: 8px; align-items: start;
-  border: 1px solid var(--line); border-radius: 12px;
-  background: rgba(10,17,27,.45); padding: 10px;
+.tutorial-card.idle {
+  grid-template-columns: 1fr auto; align-items: center; gap: 16px;
+  border-color: var(--line); background: rgba(120,145,190,.06);
 }
-.guide-step > span {
-  width: 24px; height: 24px; border-radius: 999px;
-  display: grid; place-items: center; font-size: 11px; font-weight: 700;
-  background: rgba(78,212,208,.14); color: var(--accent);
+.tutorial-card.idle h3, .tutorial-card h3 { font-size: 15px; margin-bottom: 5px; }
+.tutorial-card.idle p, .tutorial-card .tutorial-head p { font-size: 11.5px; color: var(--muted); line-height: 1.6; }
+.tutorial-head { display: flex; justify-content: space-between; align-items: start; gap: 16px; }
+.tutorial-progress { min-width: 150px; text-align: right; }
+.tutorial-progress b { display: block; font-size: 11px; color: var(--accent); margin-bottom: 6px; }
+.tutorial-progress > div { height: 7px; border-radius: 999px; background: rgba(120,145,190,.16); overflow: hidden; }
+.tutorial-progress span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+.tutorial-body { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.tutorial-box { border: 1px solid var(--line); border-radius: 12px; background: rgba(10,17,27,.45); padding: 12px; }
+.tutorial-box b { display: block; font-size: 11.5px; margin-bottom: 6px; }
+.tutorial-box.action b { color: var(--accent); }
+.tutorial-box.think b { color: var(--warn); }
+.tutorial-box p { font-size: 11.5px; color: var(--text); line-height: 1.7; }
+.tutorial-box ul { margin-left: 18px; }
+.tutorial-box li { font-size: 11px; color: var(--muted); line-height: 1.7; }
+.tutorial-box .ghost { margin-top: 10px; }
+.tutorial-objective { display: grid; gap: 6px; }
+.tutorial-objective label { font-size: 12px; color: var(--muted); }
+.tutorial-objective textarea { min-height: 90px; }
+.tutorial-objective small { font-size: 10.5px; color: var(--muted); }
+.tutorial-decision > b { display: block; font-size: 12px; margin-bottom: 8px; }
+.tutorial-decision > div { display: flex; gap: 8px; flex-wrap: wrap; }
+.tutorial-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding-top: 4px; }
+.tutorial-status {
+  font-size: 11px; color: var(--warn); line-height: 1.6;
+  border: 1px solid rgba(240,180,91,.24); background: rgba(240,180,91,.08);
+  padding: 6px 10px; border-radius: 999px;
 }
-.guide-step b { font-size: 12px; }
-.guide-step p { font-size: 10.5px; color: var(--muted); line-height: 1.6; margin-top: 3px; }
+.tutorial-status.ready {
+  color: var(--accent); border-color: rgba(78,212,208,.25); background: rgba(78,212,208,.10);
+}
+.tutorial-controls .primary { margin-left: auto; }
 
 .stage-guide, .metric-guide {
   border: 1px solid var(--line); border-radius: 12px;
@@ -324,6 +345,9 @@ tr:last-child td { border-bottom: 0; }
 @media (max-width: 900px) {
   .hero, .grid.cols-2, .grid.cols-3, .grid.cols-4,
   .resource-row, .creatures, .station-grid, .metric-grid,
-  .guide-grid { grid-template-columns: 1fr; }
+  .tutorial-body, .tutorial-card.idle { grid-template-columns: 1fr; }
+  .tutorial-head, .tutorial-progress { display: block; }
+  .tutorial-progress { margin-top: 10px; text-align: left; }
+  .tutorial-controls .primary { margin-left: 0; }
   .tabs { margin-left: 0; }
 }
